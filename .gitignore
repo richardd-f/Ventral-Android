@@ -1,0 +1,25 @@
+# --- Build System & Dependencies ---
+.gradle/
+**/build/
+*.iml
+local.properties
+
+# --- Android Studio / IntelliJ ---
+# We ignore the whole folder because it contains user-specific settings
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Native / C++ (If you use NDK) ---
+.cxx/
+.externalNativeBuild/
+externalNativeBuild/
+
+# --- Misc ---
+captures/
+*.log
+
+# --- SECURITY (Critical!) ---
+# Never upload signing keys
+*.jks
+*.keystore
