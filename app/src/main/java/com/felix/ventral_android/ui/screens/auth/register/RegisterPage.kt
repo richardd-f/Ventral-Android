@@ -1,16 +1,26 @@
 package com.felix.ventral_android.ui.screens.auth.register
 
+import android.net.Uri
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.with
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -26,6 +36,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -48,10 +59,14 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.felix.ventral_android.navigation.Screen
 import com.felix.ventral_android.ui.screens.auth.login.LoginViewModel
+import com.felix.ventral_android.ui.screens.auth.register.components.Step1Content
+import com.felix.ventral_android.ui.screens.auth.register.components.Step2Content
+import com.felix.ventral_android.ui.screens.auth.register.components.Step3Content
 
 private val DarkPurple = Color(0xFF120C1F)
 private val AccentPurple = Color(0xFF5D3FD3)
@@ -73,32 +88,47 @@ fun RegisterPage(
         navController.navigate(Screen.Login.route)
     }
 
-
     RegisterContent(
         state = state,
+        // Step 1 Events
         onNameChange = viewModel::onNameChange,
         onEmailChange = viewModel::onEmailChange,
+        onPhoneChange = viewModel::onPhoneChange,
+        onBioChange = viewModel::onBioChange,
+        // Step 2 Events
+        onImageSelected = viewModel::onProfileImageSelected,
+        onDateSelected = viewModel::onDateSelected,
+        // Step 3 Events
         onPasswordChange = viewModel::onPasswordChange,
         onConfirmPasswordChange = viewModel::onConfirmPasswordChange,
         onTogglePasswordVisibility = viewModel::togglePasswordVisibility,
-        onToggleConfirmPasswordVisibility = viewModel::toggleConfirmPasswordVisibility,
-        onRegisterClick = { viewModel.onRegisterClick(onRegisterSuccess) },
-        onLoginClick = onNavigateToLogin
+        // Navigation Events
+        onNextStep = viewModel::onNextStep,
+        onPreviousStep = viewModel::onPreviousStep,
+        onFinalRegister = { viewModel.onFinalRegister(onRegisterSuccess) },
+        onNavigateToLogin = onNavigateToLogin
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun RegisterContent(
     state: RegisterUiState,
+    // Form Callbacks
     onNameChange: (String) -> Unit,
     onEmailChange: (String) -> Unit,
+    onPhoneChange: (String) -> Unit,
+    onBioChange: (String) -> Unit,
+    onImageSelected: (Uri?) -> Unit,
+    onDateSelected: (Long?) -> Unit,
     onPasswordChange: (String) -> Unit,
     onConfirmPasswordChange: (String) -> Unit,
     onTogglePasswordVisibility: () -> Unit,
-    onToggleConfirmPasswordVisibility: () -> Unit,
-    onRegisterClick: () -> Unit,
-    onLoginClick: () -> Unit
+    // Nav Callbacks
+    onNextStep: () -> Unit,
+    onPreviousStep: () -> Unit,
+    onFinalRegister: () -> Unit,
+    onNavigateToLogin: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -113,205 +143,152 @@ fun RegisterContent(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 32.dp),
-            horizontalAlignment = Alignment.Start,
+                .padding(32.dp),
             verticalArrangement = Arrangement.Center
         ) {
-            // --- Header ---
+            // --- Progress Header ---
             Text(
-                text = "Create\nAccount",
+                text = "Step ${state.currentStep} of ${state.totalSteps}",
+                color = AccentPurple,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = when(state.currentStep) {
+                    1 -> "Personal Details"
+                    2 -> "Profile Setup"
+                    else -> "Security"
+                },
                 color = PureWhite,
-                fontSize = 40.sp,
+                fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
-                lineHeight = 44.sp
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = "Sign up to get started",
-                color = LightPurple,
-                fontSize = 16.sp
+                lineHeight = 40.sp
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // --- Inputs ---
-
-            // Name Input
-            OutlinedTextField(
-                value = state.name,
-                onValueChange = onNameChange,
-                label = { Text("Full Name", color = LightPurple) },
-                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = PureWhite) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                enabled = !state.isLoading,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = PureWhite,
-                    unfocusedBorderColor = AccentPurple.copy(alpha = 0.5f),
-                    focusedTextColor = PureWhite,
-                    unfocusedTextColor = PureWhite,
-                    cursorColor = PureWhite,
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent
-                ),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next)
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Email Input
-            OutlinedTextField(
-                value = state.email,
-                onValueChange = onEmailChange,
-                label = { Text("Email", color = LightPurple) },
-                leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = PureWhite) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                enabled = !state.isLoading,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = PureWhite,
-                    unfocusedBorderColor = AccentPurple.copy(alpha = 0.5f),
-                    focusedTextColor = PureWhite,
-                    unfocusedTextColor = PureWhite,
-                    cursorColor = PureWhite,
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent
-                ),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next)
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Password Input
-            OutlinedTextField(
-                value = state.password,
-                onValueChange = onPasswordChange,
-                label = { Text("Password", color = LightPurple) },
-                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = PureWhite) },
-                trailingIcon = {
-                    val image = if (state.isPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                    IconButton(onClick = onTogglePasswordVisibility) {
-                        Icon(imageVector = image, contentDescription = null, tint = LightPurple)
+            // --- Animated Form Content ---
+            AnimatedContent(
+                targetState = state.currentStep,
+                transitionSpec = {
+                    if (targetState > initialState) {
+                        slideInHorizontally { width -> width } + fadeIn() with
+                                slideOutHorizontally { width -> -width } + fadeOut()
+                    } else {
+                        slideInHorizontally { width -> -width } + fadeIn() with
+                                slideOutHorizontally { width -> width } + fadeOut()
                     }
-                },
-                singleLine = true,
-                visualTransformation = if (state.isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                enabled = !state.isLoading,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = PureWhite,
-                    unfocusedBorderColor = AccentPurple.copy(alpha = 0.5f),
-                    focusedTextColor = PureWhite,
-                    unfocusedTextColor = PureWhite,
-                    cursorColor = PureWhite,
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent
-                ),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next)
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Confirm Password Input
-            OutlinedTextField(
-                value = state.confirmPassword,
-                onValueChange = onConfirmPasswordChange,
-                label = { Text("Confirm Password", color = LightPurple) },
-                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = PureWhite) },
-                trailingIcon = {
-                    val image = if (state.isConfirmPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                    IconButton(onClick = onToggleConfirmPasswordVisibility) {
-                        Icon(imageVector = image, contentDescription = null, tint = LightPurple)
-                    }
-                },
-                singleLine = true,
-                visualTransformation = if (state.isConfirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                enabled = !state.isLoading,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = PureWhite,
-                    unfocusedBorderColor = AccentPurple.copy(alpha = 0.5f),
-                    focusedTextColor = PureWhite,
-                    unfocusedTextColor = PureWhite,
-                    cursorColor = PureWhite,
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent
-                ),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done)
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Error Message
-            if (state.errorMessage != null) {
-                Text(
-                    text = state.errorMessage,
-                    color = MaterialTheme.colorScheme.error,
-                    fontSize = 14.sp,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 12.dp),
-                    textAlign = TextAlign.Center
-                )
-            }
-
-            // Sign Up Button
-            Button(
-                onClick = onRegisterClick,
-                enabled = !state.isLoading,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = PureWhite,
-                    disabledContainerColor = PureWhite.copy(alpha = 0.7f)
-                ),
-                shape = RoundedCornerShape(16.dp),
-                elevation = ButtonDefaults.buttonElevation(8.dp)
-            ) {
-                if (state.isLoading) {
-                    CircularProgressIndicator(
-                        color = DarkPurple,
-                        modifier = Modifier.size(24.dp),
-                        strokeWidth = 2.dp
+                }, label = "RegistrationSteps"
+            ) { step ->
+                when (step) {
+                    1 -> Step1Content(
+                        name = state.name,
+                        email = state.email,
+                        phone = state.phone,
+                        bio = state.bio,
+                        onNameChange = onNameChange,
+                        onEmailChange = onEmailChange,
+                        onPhoneChange = onPhoneChange,
+                        onBioChange = onBioChange
                     )
-                } else {
-                    Text(
-                        text = "Sign Up",
-                        color = DarkPurple,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
+                    2 -> Step2Content (
+                        profileImageUri = state.profileImageUri,
+                        birthDateDisplay = state.birthDateDisplay,
+                        onImageSelected = onImageSelected,
+                        onDateSelected = onDateSelected
+                    )
+                    3 -> Step3Content(
+                        password = state.password,
+                        confirmPassword = state.confirmPassword,
+                        isPasswordVisible = state.isPasswordVisible,
+                        onPasswordChange = onPasswordChange,
+                        onConfirmPasswordChange = onConfirmPasswordChange,
+                        onTogglePasswordVisibility = onTogglePasswordVisibility
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Login Footer
-            Box(
+            // --- Error Message ---
+            if (state.errorMessage != null) {
+                Text(
+                    text = state.errorMessage,
+                    color = MaterialTheme.colorScheme.error,
+                    fontSize = 14.sp,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            // --- Navigation Buttons ---
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                // PREVIOUS
+                if (state.currentStep > 1) {
+                    OutlinedButton(
+                        onClick = onPreviousStep,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = PureWhite),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, PureWhite.copy(alpha = 0.5f))
+                    ) {
+                        Text("Back")
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                }
+
+                // NEXT / REGISTER
+                Button(
+                    onClick = {
+                        if (state.currentStep < state.totalSteps) onNextStep()
+                        else onFinalRegister()
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = PureWhite),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    if (state.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = DarkPurple,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            text = if (state.currentStep == state.totalSteps) "Sign Up" else "Next",
+                            color = DarkPurple,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Login Link
+            if (state.currentStep == 1) {
                 val annotatedString = buildAnnotatedString {
                     append("Already have an account? ")
                     withStyle(style = SpanStyle(color = PureWhite, fontWeight = FontWeight.Bold)) {
                         append("Login")
                     }
                 }
-
                 Text(
                     text = annotatedString,
                     color = LightPurple,
                     fontSize = 14.sp,
-                    modifier = Modifier.clickable(enabled = !state.isLoading) {
-                        onLoginClick()
-                    }
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .clickable { onNavigateToLogin() }
                 )
             }
         }
