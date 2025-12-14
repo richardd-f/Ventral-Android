@@ -1,6 +1,7 @@
 package com.felix.ventral_android.data.dto
 
 import com.google.gson.annotations.SerializedName
+import java.util.Date
 
 data class UserDto (
     @SerializedName("id") val id: String,
@@ -10,7 +11,7 @@ data class UserDto (
     @SerializedName("phone") val phone: String,
     @SerializedName("bio") val bio: String,
     @SerializedName("img_url") val img_url: String,
-    @SerializedName("date_of_birth") val date_of_birth: String,
+    @SerializedName("date_of_birth") val date_of_birth: Date,
     @SerializedName("current_education") val current_education: String,
     @SerializedName("isAdmin") val isAdmin: Boolean,
 )

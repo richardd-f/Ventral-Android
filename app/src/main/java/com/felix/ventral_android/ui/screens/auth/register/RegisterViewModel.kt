@@ -2,18 +2,23 @@ package com.felix.ventral_android.ui.screens.auth.register
 
 import android.net.Uri
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.felix.ventral_android.domain.repository.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Date
 import javax.inject.Inject
 
-
+@HiltViewModel
 class RegisterViewModel @Inject constructor(
-
+    private val userRepository: UserRepository
 ) :ViewModel() {
     private val _uiState = MutableStateFlow(RegisterUiState())
     val uiState: StateFlow<RegisterUiState> = _uiState.asStateFlow()
@@ -77,11 +82,44 @@ class RegisterViewModel @Inject constructor(
             return
         }
 
-        // Simulate API
-        _uiState.update { it.copy(isLoading = true) }
-        // ... Network call ...
-        _uiState.update { it.copy(isLoading = false) }
-        onSuccess()
+        // Call API
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+
+            // Convert date to YYYY-MM-DD
+            val birthDateString = state.birthDateMillis?.let { millis ->
+                Instant.ofEpochMilli(millis)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate()
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+            } ?: ""
+
+            // Call Repository
+            userRepository.register(
+                name = state.name,
+                email = state.email,
+                password = state.password,
+                phone = state.phone,
+                bio = state.bio,
+//                img_url = state.profileImageUri.toString(),
+                img_url = "https://yowazzap.com",
+                birth_date = birthDateString
+            ).collect { result ->
+
+                // Handle Result
+                result.onSuccess {
+                    _uiState.update { it.copy(isLoading = false) }
+                    onSuccess()
+                }.onFailure { error ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = error.message ?: "Registration failed"
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -98,7 +136,7 @@ data class RegisterUiState(
     // Step 2 Data
     val profileImageUri: Uri? = null,
     val birthDateMillis: Long? = null,
-    val birthDateDisplay: String = "", // Formatted date string
+    val birthDateDisplay: String = "",
 
     // Step 3 Data
     val password: String = "",
