@@ -1,21 +1,56 @@
 package com.felix.ventral_android.ui.screens.auth.register
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.felix.ventral_android.navigation.Screen
 import com.felix.ventral_android.ui.screens.auth.login.LoginViewModel
 
 private val DarkPurple = Color(0xFF120C1F)
@@ -28,7 +63,28 @@ fun RegisterPage(
     navController: NavController,
     viewModel: RegisterViewModel
 ){
-    RegisterContent(navController)
+    val state by viewModel.uiState.collectAsState()
+
+    val onNavigateToLogin = {
+        navController.navigate(Screen.Login.route)
+    }
+
+    val onRegisterSuccess = {
+        navController.navigate(Screen.Login.route)
+    }
+
+
+    RegisterContent(
+        state = state,
+        onNameChange = viewModel::onNameChange,
+        onEmailChange = viewModel::onEmailChange,
+        onPasswordChange = viewModel::onPasswordChange,
+        onConfirmPasswordChange = viewModel::onConfirmPasswordChange,
+        onTogglePasswordVisibility = viewModel::togglePasswordVisibility,
+        onToggleConfirmPasswordVisibility = viewModel::toggleConfirmPasswordVisibility,
+        onRegisterClick = { viewModel.onRegisterClick(onRegisterSuccess) },
+        onLoginClick = onNavigateToLogin
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -265,5 +321,5 @@ fun RegisterContent(
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
 fun RegisterPreview(){
-    RegisterContent(navController = rememberNavController())
+//    RegisterContent(navController = rememberNavController())
 }
