@@ -1,20 +1,22 @@
 package com.felix.ventral_android.data.repository
 
+import android.net.Uri
 import com.felix.ventral_android.data.dto.LoginRequestDto
 import com.felix.ventral_android.data.dto.RegisterRequestDto
 import com.felix.ventral_android.data.dto.UserDto
 import com.felix.ventral_android.data.local.LocalDataStore
-import com.felix.ventral_android.data.network.UserApiService
+import com.felix.ventral_android.data.network.api.UserApiService
+import com.felix.ventral_android.data.network.cloudinary.CloudinaryManager
 import com.felix.ventral_android.domain.repository.UserRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.json.JSONObject
-import java.util.Date
 import javax.inject.Inject
 
 class UserRepositoryImpl @Inject constructor(
     private val apiService: UserApiService,
-    private val localDataSource: LocalDataStore
+    private val localDataSource: LocalDataStore,
+    private val cloudinaryManager: CloudinaryManager
 ) : UserRepository {
 
     override fun login(email: String, password: String): Flow<Result<Unit>> = flow {
@@ -47,8 +49,20 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun register(name: String, email: String, password: String, phone: String, bio: String, img_url: String, birth_date: String) : Flow<Result<Unit>> = flow{
+    override fun register(name: String, email: String, password: String, phone: String, bio: String, imgUri: String, birth_date: String) : Flow<Result<Unit>> = flow{
         try {
+
+            // 1. Check if we have an image to upload
+            val finalImageUrl = if (!imgUri.isNullOrEmpty()) {
+                // Parse string back to Uri
+                val uri = Uri.parse(imgUri)
+                // UPLOAD HAPPENS HERE (Suspending call)
+                cloudinaryManager.uploadImage(uri)
+            } else {
+                // Fallback default image or empty string
+                "https://undefinedImage.com"
+            }
+
             // Create the DTO object
             val request = RegisterRequestDto(
                 name = name,
@@ -56,7 +70,7 @@ class UserRepositoryImpl @Inject constructor(
                 password = password,
                 phone = phone,
                 bio = bio,
-                img_url = img_url,
+                img_url = finalImageUrl,
                 date_of_birth = birth_date
             )
 

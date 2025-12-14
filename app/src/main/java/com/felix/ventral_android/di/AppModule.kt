@@ -2,7 +2,8 @@ package com.felix.ventral_android.di
 
 import android.content.Context
 import com.felix.ventral_android.data.local.LocalDataStore
-import com.felix.ventral_android.data.network.UserApiService
+import com.felix.ventral_android.data.network.api.UserApiService
+import com.felix.ventral_android.data.network.cloudinary.CloudinaryManager
 import com.felix.ventral_android.data.repository.UserRepositoryImpl
 import com.felix.ventral_android.domain.repository.UserRepository
 import dagger.Module
@@ -42,12 +43,22 @@ object AppModule {
         return LocalDataStore(context)
     }
 
+    // Provide Cloudinary manager
+    @Provides
+    @Singleton
+    fun provideCloudinaryManager(
+        @ApplicationContext context: Context
+    ): CloudinaryManager {
+        return CloudinaryManager(context)
+    }
+
     @Provides
     @Singleton
     fun provideUserRepository(
         apiService: UserApiService,
-        localDataSource: LocalDataStore
+        localDataSource: LocalDataStore,
+        cloudinaryManager: CloudinaryManager
     ): UserRepository {
-        return UserRepositoryImpl(apiService, localDataSource)
+        return UserRepositoryImpl( apiService, localDataSource, cloudinaryManager )
     }
 }

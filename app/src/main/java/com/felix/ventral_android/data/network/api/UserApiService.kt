@@ -1,4 +1,4 @@
-package com.felix.ventral_android.data.network
+package com.felix.ventral_android.data.network.api
 
 import com.felix.ventral_android.data.dto.AuthResponseDto
 import com.felix.ventral_android.data.dto.LoginRequestDto

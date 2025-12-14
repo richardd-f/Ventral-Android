@@ -1,6 +1,9 @@
 package com.felix.ventral_android.ui.screens.auth.register.components
 
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -75,7 +78,7 @@ fun Step1Content(
         Spacer(modifier = Modifier.height(16.dp))
         SimpleInput(phone, "Phone Number", Icons.Default.Phone, onPhoneChange, KeyboardType.Phone)
         Spacer(modifier = Modifier.height(16.dp))
-        SimpleInput(bio, "Bio (Optional)", Icons.Default.Info, onBioChange, singleLine = false)
+        SimpleInput(bio, "Bio", Icons.Default.Info, onBioChange, singleLine = false)
     }
 }
 
@@ -88,9 +91,18 @@ fun Step2Content(
     onImageSelected: (Uri?) -> Unit,
     onDateSelected: (Long?) -> Unit
 ) {
-    var showDatePicker by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState()
+    var showDatePicker by remember { mutableStateOf(false) }
 
+    // Pick Image Logic
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            onImageSelected(uri)
+        }
+    )
+
+    // Date Picker Dialog
     if (showDatePicker) {
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
@@ -113,7 +125,12 @@ fun Step2Content(
                 .clip(CircleShape)
                 .background(PureWhite.copy(alpha = 0.1f))
                 .border(2.dp, PureWhite, CircleShape)
-                .clickable { /* Trigger Image Picker Logic here */ },
+                .clickable {
+                    // Pick IMAGE only
+                    photoPickerLauncher.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                    )
+                },
             contentAlignment = Alignment.Center
         ) {
             if (profileImageUri != null) {
@@ -132,8 +149,7 @@ fun Step2Content(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // --- Date of Birth Section (FIXED) ---
-        // We wrap the TextField and the invisible click overlay in a BOX
+        // --- Date of Birth Section ---
         Box(modifier = Modifier.fillMaxWidth()) {
             OutlinedTextField(
                 value = birthDateDisplay,
@@ -146,7 +162,6 @@ fun Step2Content(
                 colors = inputColors()
             )
 
-            // Now matchParentSize works because the parent is the Box above
             Box(
                 modifier = Modifier
                     .matchParentSize()

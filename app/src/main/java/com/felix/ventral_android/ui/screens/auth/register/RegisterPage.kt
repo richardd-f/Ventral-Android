@@ -80,12 +80,14 @@ fun RegisterPage(
 ){
     val state by viewModel.uiState.collectAsState()
 
+    // navigate to Login
     val onNavigateToLogin = {
         navController.navigate(Screen.Login.route)
     }
 
+    // Navigate to Home if success
     val onRegisterSuccess = {
-        navController.navigate(Screen.Login.route)
+        navController.navigate(Screen.Home.route)
     }
 
     RegisterContent(

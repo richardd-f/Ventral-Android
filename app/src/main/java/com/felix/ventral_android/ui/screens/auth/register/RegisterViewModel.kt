@@ -13,7 +13,6 @@ import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
@@ -55,8 +54,8 @@ class RegisterViewModel @Inject constructor(
                 }
             }
             2 -> {
-                if (state.birthDateMillis == null) {
-                    _uiState.update { it.copy(errorMessage = "Date of Birth is required") }
+                if (state.birthDateMillis == null || state.profileImageUri == null) {
+                    _uiState.update { it.copy(errorMessage = "All fields is required") }
                     return
                 }
             }
@@ -101,8 +100,7 @@ class RegisterViewModel @Inject constructor(
                 password = state.password,
                 phone = state.phone,
                 bio = state.bio,
-//                img_url = state.profileImageUri.toString(),
-                img_url = "https://yowazzap.com",
+                imgUri = state.profileImageUri.toString(),
                 birth_date = birthDateString
             ).collect { result ->
 
