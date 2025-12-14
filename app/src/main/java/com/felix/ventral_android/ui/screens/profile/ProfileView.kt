@@ -1,4 +1,4 @@
-package com.felix.ventral_android.ui.screens.homepage
+package com.felix.ventral_android.ui.screens.profile
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,18 +14,19 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.felix.ventral_android.navigation.Screen
+import okhttp3.Route
 
 
 @Composable
-fun Homepage(
+fun Profile(
     navController: NavController,
-    viewModel: HomepageViewModel = hiltViewModel()
+    viewModel: ProfileViewModel = hiltViewModel()
 ){
-    HomepageContent(navController)
+    ProfileContent(navController)
 }
 
 @Composable
-fun HomepageContent(
+fun ProfileContent(
     navController: NavController
 ){
     Column(
@@ -33,17 +34,17 @@ fun HomepageContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("Halo Ini adalah Homepage")
+        Text("Halo Ini Adalah Profile View")
         Button(
-            onClick = { navController.navigate(Screen.Profile.route) }
+            onClick = { navController.navigate(Screen.Home.route) }
         ) {
-            Text("Pergi ke Profile")
+            Text("Kembali ke Home")
         }
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
+@Preview(showSystemUi = true, showBackground = true)
 @Composable
-fun HomepagePreview(){
-    HomepageContent(navController = rememberNavController())
+fun ProfilePreview(){
+    ProfileContent(navController = rememberNavController())
 }

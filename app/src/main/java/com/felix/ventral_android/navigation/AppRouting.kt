@@ -6,10 +6,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.felix.ventral_android.ui.screens.homepage.Homepage
+import com.felix.ventral_android.ui.screens.homepage.HomepageViewModel
+import com.felix.ventral_android.ui.screens.profile.Profile
+import com.felix.ventral_android.ui.screens.profile.ProfileViewModel
 
 sealed class Screen(val route: String) {
     object Home : Screen("home")
-    object AlbumDetails : Screen("album_details")
+    object Profile : Screen("profile")
 }
 
 @Composable
@@ -21,21 +25,15 @@ fun AppNavigation() {
         startDestination = Screen.Home.route
     ) {
         // Home
-        composable(Screen.Home.route) { backStackEntry ->
-            val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(Screen.Home.route)
-            }
-            val viewModel: MainViewModel = hiltViewModel(parentEntry)
+        composable(Screen.Home.route) {
+            val viewModel: HomepageViewModel = hiltViewModel()
             Homepage(navController, viewModel)
         }
 
-        // Album Details
-        composable(Screen.AlbumDetails.route) { backStackEntry ->
-            val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(Screen.Home.route)
-            }
-            val viewModel: MainViewModel = hiltViewModel(parentEntry)
-            AlbumDetails(navController, viewModel)
+        // Profile
+        composable(Screen.Profile.route) {
+            val viewModel: ProfileViewModel = hiltViewModel()
+            Profile(navController, viewModel)
         }
     }
 }
