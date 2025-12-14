@@ -18,7 +18,7 @@ import okhttp3.Route
 
 
 @Composable
-fun Profile(
+fun ProfilePage(
     navController: NavController,
     viewModel: ProfileViewModel = hiltViewModel()
 ){

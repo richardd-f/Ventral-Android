@@ -8,7 +8,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -17,7 +16,7 @@ import com.felix.ventral_android.navigation.Screen
 
 
 @Composable
-fun Homepage(
+fun HomePage(
     navController: NavController,
     viewModel: HomepageViewModel = hiltViewModel()
 ){
@@ -38,6 +37,11 @@ fun HomepageContent(
             onClick = { navController.navigate(Screen.Profile.route) }
         ) {
             Text("Pergi ke Profile")
+        }
+        Button(
+            onClick = { navController.navigate(Screen.Login.route) }
+        ) {
+            Text("Pergi ke Login")
         }
     }
 }
