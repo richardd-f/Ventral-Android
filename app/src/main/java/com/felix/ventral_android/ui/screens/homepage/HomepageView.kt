@@ -38,10 +38,17 @@ fun HomepageContent(
         ) {
             Text("Pergi ke Profile")
         }
+
         Button(
             onClick = { navController.navigate(Screen.Login.route) }
         ) {
             Text("Pergi ke Login")
+        }
+
+        Button(
+            onClick = { navController.navigate(Screen.CreateEvent.route) }
+        ) {
+            Text("Pergi ke Create event")
         }
     }
 }

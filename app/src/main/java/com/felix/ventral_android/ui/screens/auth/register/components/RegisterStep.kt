@@ -53,6 +53,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.felix.ventral_android.ui.components.SimpleInput
+import com.felix.ventral_android.ui.components.inputColors
 
 private val DarkPurple = Color(0xFF120C1F)
 private val AccentPurple = Color(0xFF5D3FD3)

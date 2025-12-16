@@ -49,11 +49,6 @@ import com.felix.ventral_android.ui.screens.auth.register.components.Step1Conten
 import com.felix.ventral_android.ui.screens.auth.register.components.Step2Content
 import com.felix.ventral_android.ui.screens.auth.register.components.Step3Content
 
-private val DarkPurple = Color(0xFF120C1F)
-private val AccentPurple = Color(0xFF5D3FD3)
-private val LightPurple = Color(0xFFBCAAA4)
-private val PureWhite = Color(0xFFFFFFFF)
-
 @Composable
 fun RegisterPage(
     navController: NavController,
@@ -283,3 +278,8 @@ fun RegisterContent(
 fun RegisterPreview(){
 //    RegisterContent(navController = rememberNavController())
 }
+
+private val DarkPurple = Color(0xFF120C1F)
+private val AccentPurple = Color(0xFF5D3FD3)
+private val LightPurple = Color(0xFFBCAAA4)
+private val PureWhite = Color(0xFFFFFFFF)

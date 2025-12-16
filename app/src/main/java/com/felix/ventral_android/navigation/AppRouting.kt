@@ -9,6 +9,8 @@ import com.felix.ventral_android.ui.screens.auth.login.LoginPage
 import com.felix.ventral_android.ui.screens.auth.login.LoginViewModel
 import com.felix.ventral_android.ui.screens.auth.register.RegisterPage
 import com.felix.ventral_android.ui.screens.auth.register.RegisterViewModel
+import com.felix.ventral_android.ui.screens.createEvent.CreateEventPage
+import com.felix.ventral_android.ui.screens.createEvent.CreateEventViewModel
 import com.felix.ventral_android.ui.screens.homepage.HomePage
 import com.felix.ventral_android.ui.screens.homepage.HomepageViewModel
 import com.felix.ventral_android.ui.screens.profile.ProfilePage
@@ -19,6 +21,7 @@ sealed class Screen(val route: String) {
     object Profile : Screen("profile")
     object Login : Screen("login")
     object Register : Screen("register")
+    object CreateEvent : Screen("createEvent")
 }
 
 @Composable
@@ -52,5 +55,13 @@ fun AppNavigation() {
             val viewModel: ProfileViewModel = hiltViewModel()
             ProfilePage(navController, viewModel)
         }
+
+        // Create Event Page
+        composable(Screen.CreateEvent.route) {
+            val viewModel: CreateEventViewModel = hiltViewModel()
+            CreateEventPage(navController, viewModel)
+        }
+
+
     }
 }
