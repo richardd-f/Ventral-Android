@@ -38,6 +38,11 @@ fun ProfileContent(
         ) {
             Text("Kembali ke Home")
         }
+        Button(
+            onClick = { navController.navigate(Screen.EditProfile.route) }
+        ) {
+            Text("Pergi ke Edit Profile")
+        }
     }
 }
 
