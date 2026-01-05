@@ -63,7 +63,7 @@ fun RegisterPage(
 
     // Navigate to Home if success
     val onRegisterSuccess = {
-        navController.navigate(Screen.Home.route)
+        navController.navigate(Screen.Profile.route)
     }
 
     RegisterContent(

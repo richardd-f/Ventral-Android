@@ -27,10 +27,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.felix.ventral_android.ui.screens.profile.EventPost
+import com.felix.ventral_android.domain.model.Event
 
 @Composable
-fun EventPostCard(post: EventPost) {
+fun EventPostCard(post: Event) {
     Card (
         modifier = Modifier
             .fillMaxWidth()
@@ -70,7 +70,7 @@ fun EventPostCard(post: EventPost) {
                 ) {
                     // Event Name
                     Text(
-                        text = post.title,
+                        text = post.name,
                         color = MaterialTheme.colorScheme.onPrimary,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold

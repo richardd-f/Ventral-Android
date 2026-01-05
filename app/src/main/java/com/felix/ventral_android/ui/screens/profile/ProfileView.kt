@@ -11,6 +11,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -32,6 +33,17 @@ fun ProfilePage(
     viewModel: ProfileViewModel = hiltViewModel()
 ){
     val state by viewModel.uiState.collectAsState()
+
+    // Checking Login
+    LaunchedEffect (Unit) {
+        viewModel.navigationEvent.collect { screen ->
+            navController.navigate(screen.route) {
+                // Clear stack so user can't "Back" into the profile after logout
+                popUpTo(0) { inclusive = true }
+            }
+        }
+    }
+
     ProfileContent(navController, state = state)
 }
 
@@ -48,6 +60,7 @@ fun ProfileContent(
                     colors = listOf(MaterialTheme.colorScheme.background, MaterialTheme.colorScheme.secondary)
                 )
             )
+            .padding(top = 50.dp)
     ) {
         if (state.isLoading) {
             CircularProgressIndicator(

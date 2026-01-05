@@ -65,7 +65,7 @@ fun LoginPage(
         onTogglePasswordVisibility = viewModel::togglePasswordVisibility,
         onLoginClick = {
             viewModel.onLoginClick {
-                 navController.navigate(Screen.Home.route)
+                 navController.navigate(Screen.Profile.route)
             }
         },
         onRegisterClick = {

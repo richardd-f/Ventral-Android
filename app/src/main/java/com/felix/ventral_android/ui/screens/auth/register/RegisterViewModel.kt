@@ -86,7 +86,7 @@ class RegisterViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
-            // Convert date to YYYY-MM-DD
+            // 1. Convert date to YYYY-MM-DD
             val birthDateString = state.birthDateMillis?.let { millis ->
                 Instant.ofEpochMilli(millis)
                     .atZone(ZoneId.systemDefault())
@@ -94,8 +94,9 @@ class RegisterViewModel @Inject constructor(
                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
             } ?: ""
 
-            // Call Repository
-            userRepository.register(
+            // 2. Call Repository (Now a direct suspend call)
+            // We remove .collect because this returns a Result<Unit> directly
+            val result = userRepository.register(
                 name = state.name,
                 email = state.email,
                 password = state.password,
@@ -103,19 +104,18 @@ class RegisterViewModel @Inject constructor(
                 bio = state.bio,
                 imgUri = state.profileImageUri.toString(),
                 birth_date = birthDateString
-            ).collect { result ->
+            )
 
-                // Handle Result
-                result.onSuccess {
-                    _uiState.update { it.copy(isLoading = false) }
-                    onSuccess()
-                }.onFailure { error ->
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            errorMessage = error.message ?: "Registration failed"
-                        )
-                    }
+            // 3. Handle the Result directly
+            result.onSuccess {
+                _uiState.update { it.copy(isLoading = false) }
+                onSuccess() // Navigate to the next screen
+            }.onFailure { error ->
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = error.message ?: "Registration failed"
+                    )
                 }
             }
         }

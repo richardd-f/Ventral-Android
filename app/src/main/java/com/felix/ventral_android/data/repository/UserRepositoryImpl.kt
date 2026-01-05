@@ -4,107 +4,100 @@ import android.net.Uri
 import com.felix.ventral_android.data.dto.LoginRequestDto
 import com.felix.ventral_android.data.dto.RegisterRequestDto
 import com.felix.ventral_android.data.dto.UserDto
+import com.felix.ventral_android.data.dto.toDomain
+import com.felix.ventral_android.data.local.JwtUtils
 import com.felix.ventral_android.data.local.LocalDataStore
 import com.felix.ventral_android.data.network.api.UserApiService
 import com.felix.ventral_android.data.network.cloudinary.CloudinaryManager
+import com.felix.ventral_android.domain.model.User
 import com.felix.ventral_android.domain.repository.UserRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import javax.inject.Inject
 
 class UserRepositoryImpl @Inject constructor(
     private val apiService: UserApiService,
-    private val localDataSource: LocalDataStore,
-    private val cloudinaryManager: CloudinaryManager
-) : UserRepository {
+    override val localDataStore: LocalDataStore,
+    private val cloudinaryManager: CloudinaryManager,
+) : BaseRepository(), UserRepository {
 
     // Auth
-    override fun login(email: String, password: String): Flow<Result<Unit>> = flow {
-        try {
-            val request = LoginRequestDto(email, password)
-            val response = apiService.loginUser(request)
+    override suspend fun login(email: String, password: String): Result<Unit> {
+        return handleApiCall(
+            call = { apiService.loginUser(LoginRequestDto(email, password)) },
+            map = { token ->
+                // Extract data from the JWT payload
+                val userId = JwtUtils.getUserIdFromToken(token)
 
-            if (response.isSuccessful && response.body() != null) {
-                // SUCCESS (HTTP 200-299)
-                // Retrofit automatically parsed the JSON for us
-                val authData = response.body()!!
-                localDataSource.saveToken(authData.token)
-                emit(Result.success(Unit))
-            } else {
-                // ERROR (HTTP 400, 401, 500, etc.)
-                val errorJsonString = response.errorBody()?.string() // Get raw JSON string
-
-                // simple parsing to get the message
-                val errorMessage = try {
-                    // Assuming you use Gson or standard JSONObject
-                    JSONObject(errorJsonString).getString("errors")
-                } catch (e: Exception) {
-                    "Unknown error occurred"
+                // Save to DataStore
+                localDataStore.saveToken(token)
+                if (userId != null) {
+                    localDataStore.saveUserId(userId)
                 }
-
-                emit(Result.failure(Exception(errorMessage)))
+                Unit
             }
-        } catch (e: Exception) {
-            emit(Result.failure(e))
-        }
+        )
     }
 
-    override fun register(name: String, email: String, password: String, phone: String, bio: String, imgUri: String, birth_date: String) : Flow<Result<Unit>> = flow{
-        try {
+    override suspend fun register(
+        name: String,
+        email: String,
+        password: String,
+        phone: String,
+        bio: String,
+        imgUri: String,
+        birth_date: String
+    ): Result<Unit> {
 
-            // 1. Check if we have an image to upload
-            val finalImageUrl = if (!imgUri.isNullOrEmpty()) {
-                // Parse string back to Uri
+        // 1. Handle the Image Upload FIRST (outside handleApiCall)
+        val finalImageUrl = try {
+            if (!imgUri.isNullOrEmpty()) {
                 val uri = Uri.parse(imgUri)
-                // UPLOAD HAPPENS HERE (Suspending call)
-                cloudinaryManager.uploadImage(uri)
+                cloudinaryManager.uploadImage(uri) // Suspending call
             } else {
-                // Fallback default image or empty string
-                "https://undefinedImage.com"
-            }
-
-            // Create the DTO object
-            val request = RegisterRequestDto(
-                name = name,
-                email = email,
-                password = password,
-                phone = phone,
-                bio = bio,
-                img_url = finalImageUrl,
-                date_of_birth = birth_date
-            )
-
-            // Call the API
-            val response = apiService.registerUser(request)
-
-            if (response.isSuccessful && response.body() != null) {
-                val token = response.body()!!.token
-
-                // Save token immediately so user is logged in
-                localDataSource.saveToken(token)
-                emit(Result.success(Unit))
-            } else {
-                val errorJsonString = response.errorBody()?.string() // Get raw JSON string
-                val errorMessage = try {
-                    JSONObject(errorJsonString).getString("errors")
-                } catch (e: Exception) {
-                    "Unknown error occurred"
-                }
-                emit(Result.failure(Exception(errorMessage)))
+                "https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg"
             }
         } catch (e: Exception) {
-            emit(Result.failure(e))
+            return Result.failure(Exception("Image upload failed: ${e.message}"))
         }
-    }
 
-    // Event
+        // 2. Prepare the DTO
+        val request = RegisterRequestDto(
+            name = name,
+            email = email,
+            password = password,
+            phone = phone,
+            bio = bio,
+            img_url = finalImageUrl,
+            date_of_birth = birth_date
+        )
+
+        // 3. Use handleApiCall for the network request and saving data
+        return handleApiCall(
+            call = { apiService.registerUser(request) },
+            map = { token ->
+                // Extract data from the JWT payload
+                val userId = JwtUtils.getUserIdFromToken(token)
+
+                // Save to DataStore
+                localDataStore.saveToken(token)
+                if (userId != null) {
+                    localDataStore.saveUserId(userId)
+                }
+                Unit
+            }
+        )
+    }
 
 
     // User Profile
-    override fun getUserProfile(): Flow<Result<UserDto>> {
-        TODO("Not yet implemented")
+    override suspend fun getUserById(userId: String): Result<User> {
+        return handleApiCall(
+            call = { apiService.getUserById(userId) },
+            map = { dto -> dto.toDomain() }
+        )
     }
-
 
 }

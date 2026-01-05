@@ -2,15 +2,20 @@ package com.felix.ventral_android.di
 
 import android.content.Context
 import com.felix.ventral_android.data.local.LocalDataStore
+import com.felix.ventral_android.data.network.AuthInterceptor
+import com.felix.ventral_android.data.network.api.EventApiService
 import com.felix.ventral_android.data.network.api.UserApiService
 import com.felix.ventral_android.data.network.cloudinary.CloudinaryManager
+import com.felix.ventral_android.data.repository.EventRepositoryImpl
 import com.felix.ventral_android.data.repository.UserRepositoryImpl
+import com.felix.ventral_android.domain.repository.EventRepository
 import com.felix.ventral_android.domain.repository.UserRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
@@ -19,21 +24,24 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    // Provide Retrofit (The base network client)
+    // Provide OkHttpClient
     @Provides
     @Singleton
-    fun provideRetrofit(): Retrofit {
-        return Retrofit.Builder()
-            .baseUrl("http://10.121.65.83:3000/api/")
-            .addConverterFactory(GsonConverterFactory.create())
+    fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient {
+        return OkHttpClient.Builder()
+            .addInterceptor(authInterceptor) // Attach the token injector here
             .build()
     }
 
-    // Provide UserApiService
+    // Provide Retrofit (The base network client)
     @Provides
     @Singleton
-    fun provideUserApiService(retrofit: Retrofit): UserApiService {
-        return retrofit.create(UserApiService::class.java)
+    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl("http://192.168.0.103:3000/api/")
+            .client(okHttpClient) // Attach the token injector here
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
     }
 
     // Provide LocalDataStore
@@ -52,14 +60,39 @@ object AppModule {
         return CloudinaryManager(context)
     }
 
+    // Provide UserApiService
+    @Provides
+    @Singleton
+    fun provideUserApiService(retrofit: Retrofit): UserApiService {
+        return retrofit.create(UserApiService::class.java)
+    }
+
     // Provide User Repository
     @Provides
     @Singleton
     fun provideUserRepository(
         apiService: UserApiService,
-        localDataSource: LocalDataStore,
+        localDataStore: LocalDataStore,
         cloudinaryManager: CloudinaryManager
     ): UserRepository {
-        return UserRepositoryImpl( apiService, localDataSource, cloudinaryManager )
+        return UserRepositoryImpl( apiService, localDataStore, cloudinaryManager )
     }
+
+    // Provide Event Api Service
+    @Provides
+    @Singleton
+    fun provideEventApiService(retrofit: Retrofit): EventApiService {
+        return retrofit.create(EventApiService::class.java)
+    }
+
+    // Provide Event Repository
+    @Provides
+    @Singleton
+    fun provideEventRepository(
+        apiService: EventApiService,
+        localDataStore: LocalDataStore
+    ): EventRepository {
+        return EventRepositoryImpl(apiService, localDataStore)
+    }
+
 }

@@ -47,22 +47,20 @@ class LoginViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
             // Call the Repository
-            userRepository.login(currentState.email, currentState.password)
-                .collect { result ->
-                    // Handle the Result
-                    result.onSuccess {
-                        _uiState.update { it.copy(isLoading = false) }
-                        // Navigate only on success
-                        onLoginSuccess()
-                    }.onFailure { error ->
-                        _uiState.update {
-                            it.copy(
-                                isLoading = false,
-                                errorMessage = error.message ?: "Login failed"
-                            )
-                        }
-                    }
+            val result = userRepository.login(currentState.email, currentState.password)
+
+            // Handle the Result
+            result.onSuccess {
+                _uiState.update { it.copy(isLoading = false) }
+                onLoginSuccess()
+            }.onFailure { error ->
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = error.message ?: "Login failed"
+                    )
                 }
+            }
         }
     }
 }
