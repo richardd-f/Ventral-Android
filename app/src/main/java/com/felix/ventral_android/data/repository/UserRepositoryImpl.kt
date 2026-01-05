@@ -57,7 +57,7 @@ class UserRepositoryImpl @Inject constructor(
                 // Parse string back to Uri
                 val uri = Uri.parse(imgUri)
                 // UPLOAD HAPPENS HERE (Suspending call)
-                cloudinaryManager.uploadImage(uri)
+//                cloudinaryManager.uploadImage(uri)
             } else {
                 // Fallback default image or empty string
                 "https://undefinedImage.com"
@@ -70,7 +70,8 @@ class UserRepositoryImpl @Inject constructor(
                 password = password,
                 phone = phone,
                 bio = bio,
-                img_url = finalImageUrl,
+//                img_url = finalImageUrl,
+                img_url = "https://google.com",
                 date_of_birth = birth_date
             )
 
@@ -98,6 +99,6 @@ class UserRepositoryImpl @Inject constructor(
     }
 
     override fun getUserProfile(): Flow<Result<UserDto>> {
-        TODO("Not yet implemented")
+        TODO("Not yet implemented")''
     }
 }

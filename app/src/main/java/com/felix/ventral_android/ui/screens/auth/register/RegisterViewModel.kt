@@ -14,6 +14,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
+import androidx.core.net.toUri
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
@@ -54,9 +55,15 @@ class RegisterViewModel @Inject constructor(
                 }
             }
             2 -> {
-                if (state.birthDateMillis == null || state.profileImageUri == null) {
+                if (state.birthDateMillis == null) {
+
                     _uiState.update { it.copy(errorMessage = "All fields is required") }
                     return
+                }
+                if (state.profileImageUri == null) {
+                    _uiState.update {
+                        it.copy(profileImageUri = "content://".toUri())
+                    }
                 }
             }
         }
