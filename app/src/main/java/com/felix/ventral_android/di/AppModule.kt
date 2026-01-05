@@ -24,7 +24,7 @@ object AppModule {
     @Singleton
     fun provideRetrofit(): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("http://192.168.0.104:3000/api/")
+            .baseUrl("http://10.121.65.83:3000/api/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
@@ -52,6 +52,7 @@ object AppModule {
         return CloudinaryManager(context)
     }
 
+    // Provide User Repository
     @Provides
     @Singleton
     fun provideUserRepository(

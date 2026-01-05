@@ -50,10 +50,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.felix.ventral_android.navigation.Screen
 
-private val DarkPurple = Color(0xFF120C1F)
-private val AccentPurple = Color(0xFF5D3FD3)
-private val LightPurple = Color(0xFFBCAAA4)
-private val PureWhite = Color(0xFFFFFFFF)
 
 @Composable
 fun LoginPage(
@@ -94,7 +90,7 @@ fun LoginContent(
             .fillMaxSize()
             .background(
                 brush = Brush.verticalGradient(
-                    colors = listOf(DarkPurple, Color(0xFF1F1235))
+                    colors = listOf(MaterialTheme.colorScheme.background, Color(0xFF1F1235))
                 )
             ),
         contentAlignment = Alignment.Center
@@ -109,7 +105,7 @@ fun LoginContent(
             // Header
             Text(
                 text = "Welcome\nBack",
-                color = PureWhite,
+                color = MaterialTheme.colorScheme.onPrimary,
                 fontSize = 40.sp,
                 fontWeight = FontWeight.Bold,
                 lineHeight = 44.sp
@@ -119,7 +115,7 @@ fun LoginContent(
 
             Text(
                 text = "Please sign in to continue",
-                color = LightPurple,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 16.sp
             )
 
@@ -131,18 +127,18 @@ fun LoginContent(
             OutlinedTextField(
                 value = state.email,
                 onValueChange = onEmailChange,
-                label = { Text("Email", color = LightPurple) },
-                leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = PureWhite) },
+                label = { Text("Email", color = MaterialTheme.colorScheme.onSurface) },
+                leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 enabled = !state.isLoading,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = PureWhite,
-                    unfocusedBorderColor = AccentPurple.copy(alpha = 0.5f),
-                    focusedTextColor = PureWhite,
-                    unfocusedTextColor = PureWhite,
-                    cursorColor = PureWhite,
+                    focusedBorderColor = MaterialTheme.colorScheme.onPrimary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                    focusedTextColor = MaterialTheme.colorScheme.onPrimary,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onPrimary,
+                    cursorColor = MaterialTheme.colorScheme.onPrimary,
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent
                 ),
@@ -155,12 +151,12 @@ fun LoginContent(
             OutlinedTextField(
                 value = state.password,
                 onValueChange = onPasswordChange,
-                label = { Text("Password", color = LightPurple) },
-                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = PureWhite) },
+                label = { Text("Password", color = MaterialTheme.colorScheme.onSurface) },
+                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary) },
                 trailingIcon = {
                     val image = if (state.isPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                     IconButton(onClick = onTogglePasswordVisibility) {
-                        Icon(imageVector = image, contentDescription = null, tint = LightPurple)
+                        Icon(imageVector = image, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
                     }
                 },
                 singleLine = true,
@@ -169,11 +165,11 @@ fun LoginContent(
                 shape = RoundedCornerShape(16.dp),
                 enabled = !state.isLoading,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = PureWhite,
-                    unfocusedBorderColor = AccentPurple.copy(alpha = 0.5f),
-                    focusedTextColor = PureWhite,
-                    unfocusedTextColor = PureWhite,
-                    cursorColor = PureWhite,
+                    focusedBorderColor = MaterialTheme.colorScheme.onPrimary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                    focusedTextColor = MaterialTheme.colorScheme.onPrimary,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onPrimary,
+                    cursorColor = MaterialTheme.colorScheme.onPrimary,
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent
                 ),
@@ -203,22 +199,22 @@ fun LoginContent(
                     .fillMaxWidth()
                     .height(56.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = PureWhite,
-                    disabledContainerColor = PureWhite.copy(alpha = 0.7f)
+                    containerColor = MaterialTheme.colorScheme.onPrimary,
+                    disabledContainerColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
                 ),
                 shape = RoundedCornerShape(16.dp),
                 elevation = ButtonDefaults.buttonElevation(8.dp)
             ) {
                 if (state.isLoading) {
                     CircularProgressIndicator(
-                        color = DarkPurple,
+                        color = MaterialTheme.colorScheme.background,
                         modifier = Modifier.size(24.dp),
                         strokeWidth = 2.dp
                     )
                 } else {
                     Text(
                         text = "Login",
-                        color = DarkPurple,
+                        color = MaterialTheme.colorScheme.background,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -234,14 +230,14 @@ fun LoginContent(
             ) {
                 val annotatedString = buildAnnotatedString {
                     append("Don't have an account? ")
-                    withStyle(style = SpanStyle(color = PureWhite, fontWeight = FontWeight.Bold)) {
+                    withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)) {
                         append("Sign Up")
                     }
                 }
 
                 Text(
                     text = annotatedString,
-                    color = LightPurple,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 14.sp,
                     modifier = Modifier.clickable(enabled = !state.isLoading) {
                         onRegisterClick()

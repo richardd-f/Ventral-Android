@@ -19,6 +19,7 @@ class UserRepositoryImpl @Inject constructor(
     private val cloudinaryManager: CloudinaryManager
 ) : UserRepository {
 
+    // Auth
     override fun login(email: String, password: String): Flow<Result<Unit>> = flow {
         try {
             val request = LoginRequestDto(email, password)
@@ -97,7 +98,13 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
+    // Event
+
+
+    // User Profile
     override fun getUserProfile(): Flow<Result<UserDto>> {
         TODO("Not yet implemented")
     }
+
+
 }

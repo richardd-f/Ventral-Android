@@ -3,6 +3,7 @@ package com.felix.ventral_android.ui.screens.auth.register
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.felix.ventral_android.data.repository.UserRepositoryImpl
 import com.felix.ventral_android.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

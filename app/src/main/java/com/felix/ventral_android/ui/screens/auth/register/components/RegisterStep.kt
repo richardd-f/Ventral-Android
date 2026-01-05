@@ -29,10 +29,12 @@ import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -55,11 +57,6 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.felix.ventral_android.ui.components.SimpleInput
 import com.felix.ventral_android.ui.components.inputColors
-
-private val DarkPurple = Color(0xFF120C1F)
-private val AccentPurple = Color(0xFF5D3FD3)
-private val LightPurple = Color(0xFFBCAAA4)
-private val PureWhite = Color(0xFFFFFFFF)
 
 // --- STEP 1: Personal Info ---
 @Composable
@@ -112,10 +109,22 @@ fun Step2Content(
                 TextButton(onClick = {
                     onDateSelected(datePickerState.selectedDateMillis)
                     showDatePicker = false
-                }) { Text("OK", color = AccentPurple) }
-            }
+                }) { Text("OK", color = MaterialTheme.colorScheme.primary) }
+            },
+            colors = DatePickerDefaults.colors(
+                containerColor = MaterialTheme.colorScheme.background
+            )
         ) {
-            DatePicker(state = datePickerState)
+            DatePicker(
+                state = datePickerState,
+                colors = DatePickerDefaults.colors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    headlineContentColor = MaterialTheme.colorScheme.onBackground,
+                    weekdayContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationContentColor = MaterialTheme.colorScheme.onBackground
+                )
+            )
         }
     }
 
@@ -125,8 +134,8 @@ fun Step2Content(
             modifier = Modifier
                 .size(120.dp)
                 .clip(CircleShape)
-                .background(PureWhite.copy(alpha = 0.1f))
-                .border(2.dp, PureWhite, CircleShape)
+                .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f))
+                .border(2.dp, MaterialTheme.colorScheme.onBackground, CircleShape)
                 .clickable {
                     // Pick IMAGE only
                     photoPickerLauncher.launch(
@@ -143,11 +152,11 @@ fun Step2Content(
                     modifier = Modifier.fillMaxSize()
                 )
             } else {
-                Icon(Icons.Default.CameraAlt, "Upload", tint = PureWhite, modifier = Modifier.size(40.dp))
+                Icon(Icons.Default.CameraAlt, "Upload", tint = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(40.dp))
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Text("Upload Profile Picture", color = LightPurple, fontSize = 12.sp)
+        Text("Upload Profile Picture", color = MaterialTheme.colorScheme.onSurface, fontSize = 12.sp)
 
         Spacer(modifier = Modifier.height(32.dp))
 
@@ -156,8 +165,8 @@ fun Step2Content(
             OutlinedTextField(
                 value = birthDateDisplay,
                 onValueChange = { },
-                label = { Text("Date of Birth", color = LightPurple) },
-                leadingIcon = { Icon(Icons.Default.CalendarToday, null, tint = PureWhite) },
+                label = { Text("Date of Birth", color = MaterialTheme.colorScheme.onSurface) },
+                leadingIcon = { Icon(Icons.Default.CalendarToday, null, tint = MaterialTheme.colorScheme.onBackground) },
                 readOnly = true,
                 modifier = Modifier.fillMaxWidth(), // Fills the parent Box
                 shape = RoundedCornerShape(16.dp),
@@ -187,13 +196,13 @@ fun Step3Content(
         OutlinedTextField(
             value = password,
             onValueChange = onPasswordChange,
-            label = { Text("Password", color = LightPurple) },
-            leadingIcon = { Icon(Icons.Default.Lock, null, tint = PureWhite) },
+            label = { Text("Password", color = MaterialTheme.colorScheme.onSurface) },
+            leadingIcon = { Icon(Icons.Default.Lock, null, tint = MaterialTheme.colorScheme.onBackground) },
             trailingIcon = {
                 IconButton(onClick = onTogglePasswordVisibility) {
                     Icon(
                         if (isPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                        null, tint = LightPurple
+                        null, tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
             },
@@ -210,8 +219,8 @@ fun Step3Content(
         OutlinedTextField(
             value = confirmPassword,
             onValueChange = onConfirmPasswordChange,
-            label = { Text("Confirm Password", color = LightPurple) },
-            leadingIcon = { Icon(Icons.Default.Lock, null, tint = PureWhite) },
+            label = { Text("Confirm Password", color = MaterialTheme.colorScheme.onSurface) },
+            leadingIcon = { Icon(Icons.Default.Lock, null, tint = MaterialTheme.colorScheme.onBackground) },
             singleLine = true,
             visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),

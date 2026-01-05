@@ -113,7 +113,7 @@ fun RegisterContent(
             .fillMaxSize()
             .background(
                 brush = Brush.verticalGradient(
-                    colors = listOf(DarkPurple, Color(0xFF1F1235))
+                    colors = listOf(MaterialTheme.colorScheme.background, Color(0xFF1F1235))
                 )
             ),
         contentAlignment = Alignment.Center
@@ -127,7 +127,7 @@ fun RegisterContent(
             // --- Progress Header ---
             Text(
                 text = "Step ${state.currentStep} of ${state.totalSteps}",
-                color = AccentPurple,
+                color = MaterialTheme.colorScheme.primary,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -138,7 +138,7 @@ fun RegisterContent(
                     2 -> "Profile Setup"
                     else -> "Security"
                 },
-                color = PureWhite,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
                 lineHeight = 40.sp
@@ -214,8 +214,8 @@ fun RegisterContent(
                             .weight(1f)
                             .height(56.dp),
                         shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = PureWhite),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, PureWhite.copy(alpha = 0.5f))
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onBackground),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f))
                     ) {
                         Text("Back")
                     }
@@ -231,19 +231,19 @@ fun RegisterContent(
                     modifier = Modifier
                         .weight(1f)
                         .height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = PureWhite),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onBackground),
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     if (state.isLoading) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
-                            color = DarkPurple,
+                            color = MaterialTheme.colorScheme.background,
                             strokeWidth = 2.dp
                         )
                     } else {
                         Text(
                             text = if (state.currentStep == state.totalSteps) "Sign Up" else "Next",
-                            color = DarkPurple,
+                            color = MaterialTheme.colorScheme.background,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -256,13 +256,13 @@ fun RegisterContent(
             if (state.currentStep == 1) {
                 val annotatedString = buildAnnotatedString {
                     append("Already have an account? ")
-                    withStyle(style = SpanStyle(color = PureWhite, fontWeight = FontWeight.Bold)) {
+                    withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold)) {
                         append("Login")
                     }
                 }
                 Text(
                     text = annotatedString,
-                    color = LightPurple,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 14.sp,
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
@@ -278,8 +278,3 @@ fun RegisterContent(
 fun RegisterPreview(){
 //    RegisterContent(navController = rememberNavController())
 }
-
-private val DarkPurple = Color(0xFF120C1F)
-private val AccentPurple = Color(0xFF5D3FD3)
-private val LightPurple = Color(0xFFBCAAA4)
-private val PureWhite = Color(0xFFFFFFFF)

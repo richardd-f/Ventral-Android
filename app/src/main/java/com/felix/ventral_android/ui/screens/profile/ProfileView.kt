@@ -1,18 +1,29 @@
 package com.felix.ventral_android.ui.screens.profile
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.felix.ventral_android.navigation.Screen
+import com.felix.ventral_android.ui.screens.profile.components.EventPostCard
+import com.felix.ventral_android.ui.screens.profile.components.ProfileHeader
 
 
 @Composable
@@ -20,23 +31,51 @@ fun ProfilePage(
     navController: NavController,
     viewModel: ProfileViewModel = hiltViewModel()
 ){
-    ProfileContent(navController)
+    val state by viewModel.uiState.collectAsState()
+    ProfileContent(navController, state = state)
 }
 
 @Composable
 fun ProfileContent(
-    navController: NavController
+    navController: NavController,
+    state: ProfileUiState
 ){
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(MaterialTheme.colorScheme.background, MaterialTheme.colorScheme.secondary)
+                )
+            )
     ) {
-        Text("Halo Ini Adalah Profile View")
-        Button(
-            onClick = { navController.navigate(Screen.Home.route) }
-        ) {
-            Text("Kembali ke Home")
+        if (state.isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.Center),
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+        } else {
+            LazyColumn (
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 24.dp)
+            ) {
+                // Profile Info Section
+                item { ProfileHeader(state) }
+                
+                item {
+                    Text(
+                        text = "My Events",
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
+                    )
+                }
+
+                items(state.posts) { post ->
+                    EventPostCard(post)
+                }
+            }
         }
     }
 }
@@ -44,5 +83,5 @@ fun ProfileContent(
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
 fun ProfilePreview(){
-    ProfileContent(navController = rememberNavController())
+//    ProfileContent(navController = rememberNavController())
 }
