@@ -38,7 +38,7 @@ object AppModule {
     @Singleton
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("http://192.168.0.103:3000/api/")
+            .baseUrl("http://ventral.felitech.site/api/")
             .client(okHttpClient) // Attach the token injector here
             .addConverterFactory(GsonConverterFactory.create())
             .build()
