@@ -1,4 +1,4 @@
-package com.felix.ventral_android.ui.screens.createEvent
+package com.felix.ventral_android.ui.screens.event.createEvent
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -50,8 +50,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.foundation.layout.FlowRow
-
-
 
 @Composable
 fun CreateEventPage(

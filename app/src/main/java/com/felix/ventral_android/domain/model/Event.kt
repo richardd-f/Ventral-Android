@@ -9,7 +9,7 @@ data class Event(
     val dateEnd: String,
     val price: Int,
     val status: String, // Matches "OPEN", "CLOSED", "SUSPENDED" from Zod
-    val quota: Int?,     // Nullable because it is optional in your Zod schema
+    val quota: Int?,
     val images: List<String>,
     val categories: List<Category>,
     val likes: Int

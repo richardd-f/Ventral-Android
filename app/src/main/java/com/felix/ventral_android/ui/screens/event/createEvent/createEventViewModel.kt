@@ -1,4 +1,4 @@
-package com.felix.ventral_android.ui.screens.createEvent
+package com.felix.ventral_android.ui.screens.event.createEvent
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

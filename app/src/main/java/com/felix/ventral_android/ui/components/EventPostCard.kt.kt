@@ -1,4 +1,4 @@
-package com.felix.ventral_android.ui.screens.profile.components
+package com.felix.ventral_android.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -29,17 +29,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.felix.ventral_android.domain.model.Event
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.layout.ContentScale
+import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import com.felix.ventral_android.navigation.Screen
 
 
 @Composable
-fun EventPostCard(post: Event) {
+fun EventPostCard(post: Event, navController: NavController) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 10.dp),
+            .padding(horizontal = 24.dp, vertical = 10.dp)
+            .clickable {
+                // Navigate to the EventDetails screen
+                // Passing event ID as a simple example
+                navController.currentBackStackEntry?.savedStateHandle?.set("event", post)
+                navController.navigate(Screen.EventDetails.route)
+            },
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF251A3D))
     ) {
@@ -50,7 +59,6 @@ fun EventPostCard(post: Event) {
                     .fillMaxWidth()
                     .height(180.dp)
             ) {
-                // Load the first image if available
                 if (post.images.isNotEmpty()) {
                     Image(
                         painter = rememberAsyncImagePainter(post.images.first()),
@@ -59,7 +67,6 @@ fun EventPostCard(post: Event) {
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {
-                    // Placeholder if no image
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -89,7 +96,6 @@ fun EventPostCard(post: Event) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Event Name
                     Text(
                         text = post.name,
                         color = MaterialTheme.colorScheme.onPrimary,
@@ -97,7 +103,6 @@ fun EventPostCard(post: Event) {
                         fontWeight = FontWeight.Bold
                     )
 
-                    // Likes
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.Favorite,
@@ -116,7 +121,6 @@ fun EventPostCard(post: Event) {
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                // Short Description
                 Text(
                     text = post.description,
                     color = MaterialTheme.colorScheme.onSurface,

@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.felix.ventral_android.navigation.Screen
-import com.felix.ventral_android.ui.screens.profile.components.EventPostCard
+import com.felix.ventral_android.ui.components.EventPostCard
 import com.felix.ventral_android.ui.screens.profile.components.ProfileHeader
 
 
@@ -99,7 +99,10 @@ fun ProfileContent(
                 }
 
                 items(state.posts) { post ->
-                    EventPostCard(post)
+                    EventPostCard(
+                        post,
+                        navController = navController
+                    )
                 }
             }
         }

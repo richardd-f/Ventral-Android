@@ -15,8 +15,10 @@ import com.felix.ventral_android.ui.screens.auth.login.LoginPage
 import com.felix.ventral_android.ui.screens.auth.login.LoginViewModel
 import com.felix.ventral_android.ui.screens.auth.register.RegisterPage
 import com.felix.ventral_android.ui.screens.auth.register.RegisterViewModel
-import com.felix.ventral_android.ui.screens.createEvent.CreateEventPage
-import com.felix.ventral_android.ui.screens.createEvent.CreateEventViewModel
+import com.felix.ventral_android.ui.screens.event.createEvent.CreateEventPage
+import com.felix.ventral_android.ui.screens.event.createEvent.CreateEventViewModel
+import com.felix.ventral_android.ui.screens.event.eventDetails.EventDetailsPage
+import com.felix.ventral_android.ui.screens.event.eventDetails.EventDetailsViewModel
 import com.felix.ventral_android.ui.screens.homepage.HomePage
 import com.felix.ventral_android.ui.screens.homepage.HomepageViewModel
 import com.felix.ventral_android.ui.screens.profile.ProfilePage
@@ -28,8 +30,10 @@ sealed class Screen(val route: String) {
     object Login : Screen("login")
     object Register : Screen("register")
     object CreateEvent : Screen("createEvent")
+    object EventDetails : Screen("eventDetails")
 
     companion object {
+        // Set screen that has bottom bar
         val bottomBarRoutes = setOf(
             Home.route,
             Profile.route,
@@ -87,6 +91,12 @@ sealed class Screen(val route: String) {
                 composable(Screen.CreateEvent.route) {
                     val viewModel: CreateEventViewModel = hiltViewModel()
                     CreateEventPage(navController, viewModel)
+                }
+
+                // Event Details (NO bottom bar)
+                composable(Screen.CreateEvent.route) {
+                    val viewModel: EventDetailsViewModel = hiltViewModel()
+                    EventDetailsPage(navController, viewModel)
                 }
             }
         }
