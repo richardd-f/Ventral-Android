@@ -45,6 +45,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.felix.ventral_android.domain.model.Category
@@ -110,8 +111,17 @@ fun HomepageContent(
                             color = LightPurple
                         )
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            // FIX: Apply the same navigation logic as the BottomNavigationBar
                             Button(
-                                onClick = { navController.navigate(Screen.Profile.route) },
+                                onClick = {
+                                    navController.navigate(Screen.Profile.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                },
                                 colors = ButtonDefaults.buttonColors(containerColor = AccentPurple)
                             ) {
                                 Text("Profile", color = PureWhite)
