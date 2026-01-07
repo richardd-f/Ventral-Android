@@ -51,6 +51,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.felix.ventral_android.domain.model.Category
 import com.felix.ventral_android.domain.model.Event
 import com.felix.ventral_android.navigation.Screen
+import java.text.NumberFormat
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -111,7 +112,6 @@ fun HomepageContent(
                             color = LightPurple
                         )
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            // FIX: Apply the same navigation logic as the BottomNavigationBar
                             Button(
                                 onClick = {
                                     navController.navigate(Screen.Profile.route) {
@@ -176,6 +176,16 @@ private fun formatDisplayDate(isoDate: String): String {
         }
     }
 }
+
+private fun formatPriceToRupiah(price: Int): String {
+    if (price == 0) {
+        return "Free"
+    }
+    val formatter = NumberFormat.getNumberInstance(Locale("in", "ID"))
+    return "Rp ${formatter.format(price)}"
+}
+
+
 
 
 @Composable
@@ -267,7 +277,7 @@ fun EventCard(event: Event, onApplyClicked: () -> Unit) {
                     IconWithText(icon = Icons.Default.LocationOn, text = "Online / To be confirmed")
                     IconWithText(icon = Icons.Default.CalendarToday, text = "Starts: ${formatDisplayDate(event.dateStart)}")
                     IconWithText(icon = Icons.Default.CalendarToday, text = "Ends: ${formatDisplayDate(event.dateEnd)}")
-                    IconWithText(icon = Icons.Outlined.AttachMoney, text = event.price.toString())
+                    IconWithText(icon = Icons.Outlined.AttachMoney, text = formatPriceToRupiah(event.price))
                 }
             }
         }
@@ -309,4 +319,3 @@ fun HomepagePreview() {
     )
     HomepageContent(navController = rememberNavController(), state = previewState)
 }
-
