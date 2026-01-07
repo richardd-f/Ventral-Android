@@ -1,5 +1,6 @@
 package com.felix.ventral_android.data.dto
 
+import com.felix.ventral_android.domain.model.Category
 import com.felix.ventral_android.domain.model.Event
 import com.google.gson.annotations.SerializedName
 
@@ -32,10 +33,10 @@ data class EventDto(
     val quota: Int,
 
     @SerializedName("images")
-    val images: List<String>,
+    val images: List<EventImage>,
 
     @SerializedName("categories")
-    val categories: List<String>,
+    val categories: List<EventCategory>,
 
     @SerializedName("_count")
     val count: EventCountDto
@@ -59,7 +60,23 @@ data class CreateEventRequestDto(
     @SerializedName("date_end") val dateEnd: String,
     @SerializedName("price") val price: Int,
     @SerializedName("quota") val quota: Int?,
-    @SerializedName("status") val status: String
+    @SerializedName("status") val status: String,
+    @SerializedName("images") val images: List<String>,
+    @SerializedName("categories") val categories: List<String>
+)
+
+data class EventImage(
+    @SerializedName("imageEvent_id") val id: String,
+    @SerializedName("event_id") val eventId: String,
+    @SerializedName("img_url") val url: String
+)
+
+data class EventCategory(
+    @SerializedName("id") val id: String,
+    @SerializedName("event_id") val eventId: String,
+    @SerializedName("category_id") val categoryId: String,
+    @SerializedName("category") val category: CategoryDto,
+
 )
 
 
@@ -75,8 +92,8 @@ fun EventDto.toDomain(): Event {
         price = this.price,
         status = this.status,
         quota = this.quota,
-        images = this.images,
-        categories = this.categories,
+        images = this.images.map{it.url},
+        categories = this.categories.map { it.category.toDomain() },
         likes = this.count.likes
     )
 }

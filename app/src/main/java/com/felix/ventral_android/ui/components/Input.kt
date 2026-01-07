@@ -29,20 +29,26 @@ private val PureWhite = Color(0xFFFFFFFF)
 fun SimpleInput(
     value: String,
     label: String,
-    icon: ImageVector? =null,
+    icon: ImageVector? = null,
     onValueChange: (String) -> Unit,
     keyboardType: KeyboardType = KeyboardType.Text,
     singleLine: Boolean = true,
-    // --- NEW PARAMETERS (with defaults to keep current dimensions/logic) ---
+
+    // --- Existing parameters ---
     modifier: Modifier = Modifier,
     maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
     readOnly: Boolean = false,
+
+    // --- ✅ NEW PARAMETER ---
+    enabled: Boolean = true,
+
+    // Click handler (for Date/Time picker)
     onClick: (() -> Unit)? = null
 ) {
-    // Logic to handle clicks for ReadOnly fields (like Date/Time pickers)
     val interactionSource = remember { MutableInteractionSource() }
 
-    if (onClick != null) {
+    // Handle click ONLY if enabled
+    if (onClick != null && enabled) {
         LaunchedEffect(interactionSource) {
             interactionSource.interactions.collect { interaction ->
                 if (interaction is PressInteraction.Release) {
@@ -56,26 +62,25 @@ fun SimpleInput(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label, color = LightPurple) },
-        leadingIcon = if (icon != null) {
+        leadingIcon = icon?.let {
             {
                 Icon(
-                    imageVector = icon,
+                    imageVector = it,
                     contentDescription = null,
                     tint = PureWhite
                 )
             }
-        } else null,
+        },
         singleLine = singleLine,
-        maxLines = maxLines, // Added support for description box
-        readOnly = readOnly, // Added support for non-typable fields
+        maxLines = maxLines,
+        readOnly = readOnly,
+        enabled = enabled, // ✅ IMPORTANT
         interactionSource = interactionSource,
-        // Merge the passed modifier with fillMaxWidth so it stays consistent
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = inputColors(),
         keyboardOptions = KeyboardOptions(
             keyboardType = keyboardType,
-            // If it's multiline, usually we want "Default" (Enter = new line), else "Next"
             imeAction = if (singleLine) ImeAction.Next else ImeAction.Default
         )
     )

@@ -28,10 +28,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.felix.ventral_android.domain.model.Event
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.rememberAsyncImagePainter
+
 
 @Composable
 fun EventPostCard(post: Event) {
-    Card (
+    Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp, vertical = 10.dp),
@@ -39,13 +44,29 @@ fun EventPostCard(post: Event) {
         colors = CardDefaults.cardColors(containerColor = Color(0xFF251A3D))
     ) {
         Column {
-            // Event Image (Mockup)
+            // Event Image
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(180.dp)
-                    .background(Color.Gray.copy(alpha = 0.3f))
             ) {
+                // Load the first image if available
+                if (post.images.isNotEmpty()) {
+                    Image(
+                        painter = rememberAsyncImagePainter(post.images.first()),
+                        contentDescription = "Event Image",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    // Placeholder if no image
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Gray.copy(alpha = 0.3f))
+                    )
+                }
+
                 // Event Status Label
                 Surface(
                     color = if (post.status == "LIVE") Color(0xFF4CAF50) else MaterialTheme.colorScheme.primary,
@@ -63,7 +84,7 @@ fun EventPostCard(post: Event) {
             }
 
             Column(modifier = Modifier.padding(16.dp)) {
-                Row (
+                Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
@@ -85,7 +106,11 @@ fun EventPostCard(post: Event) {
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(text = "${post.likes}", color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
+                        Text(
+                            text = "${post.likes}",
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 14.sp
+                        )
                     }
                 }
 

@@ -41,30 +41,31 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.felix.ventral_android.navigation.Screen
+import com.felix.ventral_android.ui.components.DatePickerField
 import com.felix.ventral_android.ui.components.SimpleInput
+import com.felix.ventral_android.ui.components.TimePickerField
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.foundation.layout.FlowRow
+
 
 
 @Composable
 fun CreateEventPage(
     navController: NavController,
     viewModel: CreateEventViewModel
-){
+) {
     val state by viewModel.uiState.collectAsState()
 
-    // Navigation Events
-    val onNavigateBack = {
-        navController.navigate(Screen.Home.route)
-    }
-
-    // Success Callback
-    val onEventCreated = {
-        // You might want to navigate to the new event detail or back home
-        navController.navigate(Screen.Home.route)
-    }
+    val onNavigateBack = { navController.navigate(Screen.Profile.route) }
+    val onEventCreated = { navController.navigate(Screen.Home.route) }
 
     CreateEventContent(
         state = state,
-        // Form Events
+        // Input Callbacks
         onEventNameChange = viewModel::onEventNameChange,
         onDescriptionChange = viewModel::onDescriptionChange,
         onStartDateChange = viewModel::onStartDateChange,
@@ -73,6 +74,8 @@ fun CreateEventPage(
         onEndTimeChange = viewModel::onEndTimeChange,
         onPriceChange = viewModel::onPriceChange,
         onQuotaChange = viewModel::onQuotaChange,
+        onImagesSelected = viewModel::onImagesSelected,
+        onCategoryToggled = viewModel::onCategoryToggled,
         // Actions
         onCreateEvent = { viewModel.createEvent(onEventCreated) },
         onNavigateBack = onNavigateBack
@@ -91,7 +94,9 @@ fun CreateEventContent(
     onEndTimeChange: (String) -> Unit,
     onPriceChange: (String) -> Unit,
     onQuotaChange: (String) -> Unit,
-    // Action Callbacks
+    onImagesSelected: (List<String>) -> Unit,
+    onCategoryToggled: (String) -> Unit,
+    // Actions
     onCreateEvent: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
@@ -158,7 +163,35 @@ fun CreateEventContent(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Section Header
+            // --- Images ---
+            Text(
+                text = "Event Images",
+                color = AccentPurple,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.Start)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            val imagePickerLauncher =
+                rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.GetMultipleContents()
+                ) { uris: List<Uri> ->
+                    onImagesSelected(uris.map { it.toString() })
+                }
+
+            Button(
+                onClick = { imagePickerLauncher.launch("image/*") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Upload Images (${state.images.size})")
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // --- Date & Time ---
             Text(
                 text = "Date & Time",
                 color = AccentPurple,
@@ -168,49 +201,79 @@ fun CreateEventContent(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            // --- 3. Start Date & Time ---
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Box(modifier = Modifier.weight(1f)) {
-                    SimpleInput(
-                        value = state.startDate,
-                        onValueChange = onStartDateChange,
+                    DatePickerField(
                         label = "Start Date",
+                        value = state.startDate,
+                        onDateSelected = onStartDateChange,
                         icon = Icons.Default.DateRange
                     )
                 }
                 Box(modifier = Modifier.weight(0.7f)) {
-                    SimpleInput(
+                    TimePickerField(
+                        label = "Time",
                         value = state.startTime,
-                        onValueChange = onStartTimeChange,
-                        label = "Time"
+                        onTimeSelected = onStartTimeChange
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // --- 4. End Date & Time ---
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Box(modifier = Modifier.weight(1f)) {
-                    SimpleInput(
-                        value = state.endDate,
-                        onValueChange = onEndDateChange,
+                    DatePickerField(
                         label = "End Date",
+                        value = state.endDate,
+                        onDateSelected = onEndDateChange,
                         icon = Icons.Default.DateRange
                     )
                 }
                 Box(modifier = Modifier.weight(0.7f)) {
-                    SimpleInput(
-                        value = state.endTime,
-                        onValueChange = onEndTimeChange,
+                    TimePickerField(
                         label = "Time",
+                        value = state.endTime,
+                        onTimeSelected = onEndTimeChange
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Section Header
+            // --- Categories ---
+            Text(
+                text = "Categories",
+                color = AccentPurple,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.Start)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                state.availableCategories.forEach { category ->
+                    val selected = state.selectedCategoryIds.contains(category.id)
+
+                    FilterChip(
+                        selected = selected,
+                        onClick = { onCategoryToggled(category.id) },
+                        label = { Text(category.category) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = AccentPurple,
+                            selectedLabelColor = PureWhite
+                        )
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // --- Ticket Details ---
             Text(
                 text = "Ticket Details",
                 color = AccentPurple,
@@ -220,7 +283,6 @@ fun CreateEventContent(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            // --- 5. Price & 6. Quota ---
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Box(modifier = Modifier.weight(1f)) {
                     SimpleInput(
@@ -245,9 +307,9 @@ fun CreateEventContent(
             Spacer(modifier = Modifier.height(40.dp))
 
             // --- Error Message ---
-            if (state.errorMessage != null) {
+            state.errorMessage?.let { error ->
                 Text(
-                    text = state.errorMessage,
+                    text = error,
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(bottom = 16.dp),
                     fontSize = 14.sp
@@ -283,6 +345,7 @@ fun CreateEventContent(
         }
     }
 }
+
 
 private val DarkPurple = Color(0xFF120C1F)
 private val AccentPurple = Color(0xFF5D3FD3)

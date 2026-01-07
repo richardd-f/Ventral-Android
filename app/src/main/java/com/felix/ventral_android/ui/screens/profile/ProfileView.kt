@@ -7,7 +7,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.felix.ventral_android.navigation.Screen
 import com.felix.ventral_android.ui.screens.profile.components.EventPostCard
 import com.felix.ventral_android.ui.screens.profile.components.ProfileHeader
 
@@ -51,37 +56,45 @@ fun ProfilePage(
 fun ProfileContent(
     navController: NavController,
     state: ProfileUiState
-){
+) {
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(
                 brush = Brush.verticalGradient(
-                    colors = listOf(MaterialTheme.colorScheme.background, MaterialTheme.colorScheme.secondary)
+                    colors = listOf(
+                        MaterialTheme.colorScheme.background,
+                        MaterialTheme.colorScheme.secondary
+                    )
                 )
             )
             .padding(top = 50.dp)
     ) {
+
         if (state.isLoading) {
             CircularProgressIndicator(
                 modifier = Modifier.align(Alignment.Center),
                 color = MaterialTheme.colorScheme.onPrimary
             )
         } else {
-            LazyColumn (
+            LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 24.dp)
+                contentPadding = PaddingValues(
+                    bottom = 96.dp // 👈 space for FAB + bottom bar
+                )
             ) {
-                // Profile Info Section
                 item { ProfileHeader(state) }
-                
+
                 item {
                     Text(
                         text = "My Events",
                         color = MaterialTheme.colorScheme.onPrimary,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
+                        modifier = Modifier.padding(
+                            horizontal = 24.dp,
+                            vertical = 16.dp
+                        )
                     )
                 }
 
@@ -90,8 +103,29 @@ fun ProfileContent(
                 }
             }
         }
+
+        // + button for create event
+        FloatingActionButton(
+            onClick = {
+                navController.navigate(Screen.CreateEvent.route)
+            },
+            containerColor = MaterialTheme.colorScheme.onSurface,
+            contentColor = MaterialTheme.colorScheme.background,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(
+                    end = 24.dp,
+                    bottom = 88.dp
+                )
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Create Event"
+            )
+        }
     }
 }
+
 
 @Preview(showSystemUi = true, showBackground = true)
 @Composable

@@ -1,16 +1,20 @@
 package com.felix.ventral_android.data.repository
 
+import android.net.Uri
 import com.felix.ventral_android.data.dto.CreateEventRequestDto
 import com.felix.ventral_android.data.dto.toDomain
 import com.felix.ventral_android.data.local.LocalDataStore
 import com.felix.ventral_android.data.network.api.EventApiService
+import com.felix.ventral_android.data.network.cloudinary.CloudinaryManager
+import com.felix.ventral_android.domain.model.Category
 import com.felix.ventral_android.domain.model.Event
 import com.felix.ventral_android.domain.repository.EventRepository
 import javax.inject.Inject
 
 class EventRepositoryImpl @Inject constructor(
     private val apiService: EventApiService,
-    override val localDataStore: LocalDataStore
+    override val localDataStore: LocalDataStore,
+    private val cloudinaryManager: CloudinaryManager
 ) : BaseRepository(), EventRepository {
 
     override suspend fun getAllEvents(): Result<List<Event>> {
@@ -27,7 +31,28 @@ class EventRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun createEvent(event: Event): Result<Event> {
+    override suspend fun createEvent(event: CreateEventRequestDto): Result<Event> {
+        val uploadedImages = mutableListOf<String>()
+
+        try {
+            for (imgUri in event.images) {
+                if (imgUri.isNotEmpty()) {
+                    val uri = Uri.parse(imgUri)
+                    val uploadedUrl = cloudinaryManager.uploadImage(uri) // suspending upload
+                    uploadedImages.add(uploadedUrl)
+                }
+            }
+
+            // If no images were uploaded, use a default image
+            if (uploadedImages.isEmpty()) {
+                uploadedImages.add("https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg")
+            }
+
+        } catch (e: Exception) {
+            return Result.failure(Exception("Image upload failed: ${e.message}"))
+        }
+
+        // 2️⃣ Prepare the DTO with uploaded URLs
         val requestDto = CreateEventRequestDto(
             name = event.name,
             description = event.description,
@@ -35,9 +60,12 @@ class EventRepositoryImpl @Inject constructor(
             dateEnd = event.dateEnd,
             price = event.price,
             quota = event.quota,
-            status = event.status
+            status = event.status,
+            images = uploadedImages,
+            categories = event.categories
         )
 
+        // 3️⃣ Call API with handleApiCall
         return handleApiCall(
             call = { apiService.createEvent(requestDto) },
             map = { dto -> dto.toDomain() }
@@ -55,6 +83,13 @@ class EventRepositoryImpl @Inject constructor(
         return handleApiCall(
             call = { apiService.deleteEvent(eventId) },
             map = { _ -> Unit }
+        )
+    }
+
+    override suspend fun getAllCategories(): Result<List<Category>> {
+        return handleApiCall(
+            call = { apiService.getAllCategories() },
+            map = { list -> list.map { it.toDomain() } }
         )
     }
 

@@ -1,6 +1,7 @@
 package com.felix.ventral_android.data.network.api
 
 import com.felix.ventral_android.data.dto.ApiResponse
+import com.felix.ventral_android.data.dto.CategoryDto
 import com.felix.ventral_android.data.dto.CreateEventRequestDto
 import com.felix.ventral_android.data.dto.EventDto
 import retrofit2.Response
@@ -36,4 +37,9 @@ interface EventApiService {
     suspend fun deleteEvent(
         @Path("eventId") eventId: String
     ): Response<ApiResponse<Unit>> // Only success/message needed
+
+
+    @GET("events/categories")
+    suspend fun getAllCategories(): Response<ApiResponse<List<CategoryDto>>> // List nested in ApiResponse
+
 }

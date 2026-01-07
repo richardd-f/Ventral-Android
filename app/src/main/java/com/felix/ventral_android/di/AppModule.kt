@@ -90,9 +90,10 @@ object AppModule {
     @Singleton
     fun provideEventRepository(
         apiService: EventApiService,
-        localDataStore: LocalDataStore
+        localDataStore: LocalDataStore,
+        cloudinaryManager: CloudinaryManager
     ): EventRepository {
-        return EventRepositoryImpl(apiService, localDataStore)
+        return EventRepositoryImpl(apiService, localDataStore, cloudinaryManager)
     }
 
 }
