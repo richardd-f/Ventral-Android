@@ -14,9 +14,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Comment
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.ThumbDown
@@ -45,6 +47,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
+import com.felix.ventral_android.domain.model.Category
 import com.felix.ventral_android.domain.model.Event
 import com.felix.ventral_android.navigation.Screen
 import java.time.OffsetDateTime
@@ -52,7 +55,6 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
 
-// THEME: Define the color palette provided
 private val DarkPurple = Color(0xFF120C1F)
 private val AccentPurple = Color(0xFF5D3FD3)
 private val LightPurple = Color(0xFFBCAAA4)
@@ -72,13 +74,12 @@ fun HomepageContent(
     navController: NavController,
     state: HomepageUiState
 ) {
-    // THEME: Set the background of the entire screen to DarkPurple
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .background(DarkPurple)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(DarkPurple)
     ) {
         if (state.isLoading) {
-            // THEME: Make the loading indicator stand out against the dark background
             CircularProgressIndicator(
                 modifier = Modifier.align(Alignment.Center),
                 color = AccentPurple
@@ -95,12 +96,10 @@ fun HomepageContent(
                         text = "Available Events",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
-                        // THEME: Use PureWhite for the main title
                         color = PureWhite
                     )
                 }
 
-                // --- FIX: Developer Navigation moved here ---
                 item {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -108,10 +107,8 @@ fun HomepageContent(
                     ) {
                         Text(
                             "Developer Navigation:",
-                            // THEME: Use LightPurple for secondary text
                             color = LightPurple
                         )
-                        // THEME: Apply colors to all developer buttons
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Button(
                                 onClick = { navController.navigate(Screen.Profile.route) },
@@ -139,7 +136,6 @@ fun HomepageContent(
                     item {
                         Text(
                             text = state.error,
-                            // Use standard error color for visibility
                             color = MaterialTheme.colorScheme.error,
                             modifier = Modifier.padding(8.dp)
                         )
@@ -152,24 +148,20 @@ fun HomepageContent(
                         onApplyClicked = { /* TODO: Handle Apply Click */ }
                     )
                 }
-                // --- Developer Navigation was removed from the bottom ---
             }
         }
     }
 }
 
-// FIX: Create a helper function to format the date and time string
 @Composable
 private fun formatDisplayDate(isoDate: String): String {
     return remember(isoDate) {
         try {
             val odt = OffsetDateTime.parse(isoDate)
-            // Use a formatter that includes both date and time
             val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.SHORT)
                 .withLocale(Locale.ENGLISH) // Or Locale.getDefault()
-            odt.format(formatter) // e.g., "January 7, 2026 at 8:00 AM"
+            odt.format(formatter)
         } catch (e: Exception) {
-            // If parsing fails, return a safe fallback
             isoDate.replace("T", " at ").substringBefore(".")
         }
     }
@@ -180,7 +172,6 @@ private fun formatDisplayDate(isoDate: String): String {
 fun EventCard(event: Event, onApplyClicked: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        // THEME: Set the card background to a slightly lighter shade than the main background
         colors = CardDefaults.cardColors(containerColor = DarkPurple.copy(alpha = 0.6f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         shape = MaterialTheme.shapes.large
@@ -200,14 +191,12 @@ fun EventCard(event: Event, onApplyClicked: () -> Unit) {
                     text = event.name,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    // THEME: Use PureWhite for the event title
                     color = PureWhite
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = event.description,
                     style = MaterialTheme.typography.bodyMedium,
-                    // THEME: Use LightPurple for the event description
                     color = LightPurple
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -227,7 +216,6 @@ fun EventCard(event: Event, onApplyClicked: () -> Unit) {
                     }
                     Button(
                         onClick = onApplyClicked,
-                        // THEME: Use AccentPurple for the main action button on the card
                         colors = ButtonDefaults.buttonColors(containerColor = AccentPurple)
                     ) {
                         Text("Apply", color = PureWhite)
@@ -239,14 +227,34 @@ fun EventCard(event: Event, onApplyClicked: () -> Unit) {
                     "Event details:",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    // THEME: Use PureWhite for subheadings
                     color = PureWhite
                 )
-                // This block now correctly uses the updated formatter
                 Spacer(modifier = Modifier.height(12.dp))
+                if (event.categories.isNotEmpty()) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Category,
+                            contentDescription = "Categories",
+                            modifier = Modifier.size(18.dp),
+                            tint = LightPurple
+                        )
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            items(event.categories) { category ->
+                                Text(
+                                    text = category.category,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = LightPurple
+                                )
+                            }
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     IconWithText(icon = Icons.Default.LocationOn, text = "Online / To be confirmed")
-                    // Use the formatter for the start and end dates
                     IconWithText(icon = Icons.Default.CalendarToday, text = "Starts: ${formatDisplayDate(event.dateStart)}")
                     IconWithText(icon = Icons.Default.CalendarToday, text = "Ends: ${formatDisplayDate(event.dateEnd)}")
                     IconWithText(icon = Icons.Outlined.AttachMoney, text = event.price.toString())
@@ -263,14 +271,12 @@ fun IconWithText(icon: androidx.compose.ui.graphics.vector.ImageVector, text: St
             imageVector = icon,
             contentDescription = null,
             modifier = Modifier.size(18.dp),
-            // THEME: Use LightPurple for icons
             tint = LightPurple
         )
         Spacer(modifier = Modifier.padding(horizontal = 4.dp))
         Text(
             text = text,
             style = MaterialTheme.typography.bodyMedium,
-            // THEME: Use LightPurple for icon text
             color = LightPurple
         )
     }
@@ -285,9 +291,12 @@ fun HomepagePreview() {
             Event(
                 id = "1", authorId = "a1", name = "Sample Event Title", description = "This is a sample description for the preview event.",
                 dateStart = "2026-01-17T08:00:00.000Z", dateEnd = "2026-01-18T22:00:00.000Z", price = 50000, status = "active", quota = 100,
-                images = emptyList(), categories = emptyList(), likes = 123
+                images = emptyList(),
+                categories = listOf(Category("1", "Music"), Category("2", "Art")),
+                likes = 123
             )
         )
     )
     HomepageContent(navController = rememberNavController(), state = previewState)
 }
+
