@@ -1,5 +1,9 @@
 package com.felix.ventral_android.domain.model
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
 data class Event(
     val id: String?,
     val authorId: String,
@@ -13,4 +17,4 @@ data class Event(
     val images: List<String>,
     val categories: List<Category>,
     val likes: Int
-)
+) : Parcelable

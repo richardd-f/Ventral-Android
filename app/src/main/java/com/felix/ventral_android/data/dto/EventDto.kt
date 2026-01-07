@@ -2,6 +2,7 @@ package com.felix.ventral_android.data.dto
 
 import com.felix.ventral_android.domain.model.Category
 import com.felix.ventral_android.domain.model.Event
+import com.felix.ventral_android.utils.formatIsoToHumanReadable
 import com.google.gson.annotations.SerializedName
 
 data class EventDto(
@@ -87,8 +88,8 @@ fun EventDto.toDomain(): Event {
         authorId = this.authorId,
         name = this.name,
         description = this.description,
-        dateStart = this.dateStart,
-        dateEnd = this.dateEnd,
+        dateStart = formatIsoToHumanReadable(this.dateStart),
+        dateEnd = formatIsoToHumanReadable(this.dateEnd),
         price = this.price,
         status = this.status,
         quota = this.quota,

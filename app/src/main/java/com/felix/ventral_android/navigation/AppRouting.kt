@@ -94,7 +94,7 @@ sealed class Screen(val route: String) {
                 }
 
                 // Event Details (NO bottom bar)
-                composable(Screen.CreateEvent.route) {
+                composable(Screen.EventDetails.route) {
                     val viewModel: EventDetailsViewModel = hiltViewModel()
                     EventDetailsPage(navController, viewModel)
                 }

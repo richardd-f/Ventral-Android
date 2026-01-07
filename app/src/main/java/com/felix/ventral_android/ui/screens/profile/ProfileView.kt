@@ -80,7 +80,7 @@ fun ProfileContent(
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
-                    bottom = 96.dp // 👈 space for FAB + bottom bar
+                    bottom = 96.dp
                 )
             ) {
                 item { ProfileHeader(state) }
