@@ -1,4 +1,4 @@
-package com.felix.ventral_android.ui.screens.event.createEvent
+package com.felix.ventral_android.ui.screens.event.createUpdateEvent
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -50,12 +50,27 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import com.felix.ventral_android.domain.model.Event
 
 @Composable
 fun CreateEventPage(
     navController: NavController,
     viewModel: CreateEventViewModel
 ) {
+    // 1. Get event from navigation
+    val eventFromNav = remember {
+        navController.previousBackStackEntry
+            ?.savedStateHandle
+            ?.get<Event>("event")
+    }
+
+    // 2. Initialize ViewModel once
+    LaunchedEffect(eventFromNav) {
+        eventFromNav?.let { viewModel.setEditMode(eventFromNav) }
+    }
+
     val state by viewModel.uiState.collectAsState()
 
     val onNavigateBack = { navController.navigate(Screen.Profile.route) }
@@ -75,7 +90,7 @@ fun CreateEventPage(
         onImagesSelected = viewModel::onImagesSelected,
         onCategoryToggled = viewModel::onCategoryToggled,
         // Actions
-        onCreateEvent = { viewModel.createEvent(onEventCreated) },
+        onCreateEvent = { viewModel.submit(onEventCreated) },
         onNavigateBack = onNavigateBack
     )
 }
@@ -128,7 +143,8 @@ fun CreateEventContent(
                     )
                 }
                 Text(
-                    text = "Create New Event",
+                    text = if (state.mode == FormMode.CREATE) "Create New Event"
+                    else "Edit Event",
                     color = PureWhite,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
@@ -331,7 +347,8 @@ fun CreateEventContent(
                     )
                 } else {
                     Text(
-                        text = "Publish Event",
+                        text = if(state.mode == FormMode.CREATE)"Publish Event"
+                        else "Update Event",
                         color = DarkPurple,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp

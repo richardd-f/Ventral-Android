@@ -1,9 +1,11 @@
 package com.felix.ventral_android.data.network.api
 
 import com.felix.ventral_android.data.dto.ApiResponse
+import com.felix.ventral_android.data.dto.ApplicationDto
 import com.felix.ventral_android.data.dto.CategoryDto
 import com.felix.ventral_android.data.dto.CreateEventRequestDto
 import com.felix.ventral_android.data.dto.EventDto
+import com.felix.ventral_android.data.dto.UpdateEventRequestDto
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -30,7 +32,7 @@ interface EventApiService {
     @PATCH("events/{eventId}")
     suspend fun updateEvent(
         @Path("eventId") eventId: String,
-        @Body updateRequest: Map<String, Any>
+        @Body updateRequest: UpdateEventRequestDto
     ): Response<ApiResponse<EventDto>> // Single object nested
 
     @DELETE("events/{eventId}")
@@ -41,5 +43,11 @@ interface EventApiService {
 
     @GET("events/categories")
     suspend fun getAllCategories(): Response<ApiResponse<List<CategoryDto>>> // List nested in ApiResponse
+
+    // Apply logged user to event
+    @POST("events/{eventId}/apply")
+    suspend fun applyEvent(
+        @Path("eventId") eventId: String
+    ): Response<ApiResponse<ApplicationDto>>
 
 }

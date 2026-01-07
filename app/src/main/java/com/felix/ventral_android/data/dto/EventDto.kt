@@ -66,6 +66,16 @@ data class CreateEventRequestDto(
     @SerializedName("categories") val categories: List<String>
 )
 
+data class UpdateEventRequestDto(
+    @SerializedName("name") val name: String? = null,
+    @SerializedName("description") val description: String? = null,
+    @SerializedName("date_start") val dateStart: String? = null,
+    @SerializedName("date_end") val dateEnd: String? = null,
+    @SerializedName("price") val price: Int? = null,
+    @SerializedName("quota") val quota: Int? = null,
+    @SerializedName("status") val status: String? = null,
+)
+
 data class EventImage(
     @SerializedName("imageEvent_id") val id: String,
     @SerializedName("event_id") val eventId: String,

@@ -15,8 +15,8 @@ import com.felix.ventral_android.ui.screens.auth.login.LoginPage
 import com.felix.ventral_android.ui.screens.auth.login.LoginViewModel
 import com.felix.ventral_android.ui.screens.auth.register.RegisterPage
 import com.felix.ventral_android.ui.screens.auth.register.RegisterViewModel
-import com.felix.ventral_android.ui.screens.event.createEvent.CreateEventPage
-import com.felix.ventral_android.ui.screens.event.createEvent.CreateEventViewModel
+import com.felix.ventral_android.ui.screens.event.createUpdateEvent.CreateEventPage
+import com.felix.ventral_android.ui.screens.event.createUpdateEvent.CreateEventViewModel
 import com.felix.ventral_android.ui.screens.event.eventDetails.EventDetailsPage
 import com.felix.ventral_android.ui.screens.event.eventDetails.EventDetailsViewModel
 import com.felix.ventral_android.ui.screens.homepage.HomePage

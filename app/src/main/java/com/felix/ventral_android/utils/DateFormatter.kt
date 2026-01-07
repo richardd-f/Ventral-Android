@@ -48,3 +48,27 @@ fun formatIsoToHumanReadable(isoString: String): String {
         isoString // Fallback to original string if parsing fails
     }
 }
+
+fun fromHumanToDateIso(humanDate: String, inputPattern: String = "d MMM yyyy"): String {
+    return try {
+        val formatter = DateTimeFormatter.ofPattern(inputPattern, Locale.getDefault())
+        val date = LocalDate.parse(humanDate, formatter)
+
+        // Returns "yyyy-MM-dd"
+        date.format(DateTimeFormatter.ISO_LOCAL_DATE)
+    } catch (e: Exception) {
+        "" // Or handle error accordingly
+    }
+}
+
+fun fromHumanToTime(humanTime: String, inputPattern: String = "HH:mm"): String {
+    return try {
+        val formatter = DateTimeFormatter.ofPattern(inputPattern)
+        val time = LocalTime.parse(humanTime, formatter)
+
+        // Returns "HH:mm"
+        time.format(DateTimeFormatter.ofPattern("HH:mm"))
+    } catch (e: Exception) {
+        ""
+    }
+}

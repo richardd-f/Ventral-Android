@@ -53,9 +53,20 @@ import com.felix.ventral_android.domain.model.Event
 import androidx.compose.foundation.layout.ContextualFlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.ThumbDownOffAlt
 import androidx.compose.material.icons.filled.ThumbDown
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.SuggestionChipDefaults
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.text.font.FontWeight
+import com.felix.ventral_android.navigation.Screen
 
 @Composable
 fun EventDetailsPage(
@@ -77,40 +88,58 @@ fun EventDetailsPage(
     // 3. Collect states
     val event by viewModel.eventState.collectAsStateWithLifecycle()
     val isLiked by viewModel.isLiked.collectAsStateWithLifecycle()
+    val isRegistering by viewModel.isRegistering.collectAsStateWithLifecycle()
+    val isAuthor by viewModel.isAuthor.collectAsStateWithLifecycle()
+
+    val onRegisterSuccess: () -> Unit = {
+        navController.popBackStack()
+    }
 
     event?.let { eventData ->
         EventDetailsContent(
             event = eventData,
             isLiked = isLiked,
+            isRegistering = isRegistering,
+            isAuthor = isAuthor,
             onBackClick = { navController.popBackStack() },
-            onToggleLike = { viewModel.toggleLike() }
+            onEditClick = {
+                navController.currentBackStackEntry?.savedStateHandle?.set("event", eventData)
+                navController.navigate(Screen.CreateEvent.route)
+            },
+            onToggleLike = { viewModel.toggleLike() },
+            onRegisterClick = { viewModel.registerEvent(onRegisterSuccess) }
         )
     }
 }
 
-// Add these imports
-
-
-//@OptIn(ExperimentalMaterial3Api::experimentalmaterial3api, ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
-
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 @Composable
 fun EventDetailsContent(
     event: Event,
     isLiked: Boolean,
-    isDisliked: Boolean = false, // Add to your ViewModel/State if needed
+    isRegistering: Boolean,
+    isAuthor: Boolean,
+    onEditClick: () -> Unit = {},
+    isDisliked: Boolean = false,
     onBackClick: () -> Unit,
     onToggleLike: () -> Unit,
-    onToggleDislike: () -> Unit = {}, // Placeholder
-    onCommentClick: () -> Unit = {}   // Placeholder
+    onToggleDislike: () -> Unit = {},
+    onCommentClick: () -> Unit = {},
+    onRegisterClick: () -> Unit = {}
 ) {
     val pagerState = rememberPagerState(pageCount = { event.images.size })
     val scrollState = rememberScrollState()
 
     Scaffold(
         bottomBar = {
-            Surface(shadowElevation = 8.dp, color = MaterialTheme.colorScheme.surface) {
+            Surface(
+                shadowElevation = 8.dp,
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 2.dp
+            ) {
                 Row(
                     modifier = Modifier
+                        .navigationBarsPadding()
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp, vertical = 16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -122,15 +151,28 @@ fun EventDetailsContent(
                             text = if (event.price == 0) "Free" else "Rp ${String.format("%,d", event.price)}",
                             style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.primary,
-                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                            fontWeight = FontWeight.Bold
                         )
                     }
-                    androidx.compose.material3.Button(
-                        onClick = { /* Handle registration */ },
+
+                    Button(
+                        onClick = onRegisterClick,
+                        enabled = !isRegistering && event.status == "OPEN",
                         shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.height(50.dp)
+                        modifier = Modifier.height(50.dp).widthIn(min = 140.dp)
                     ) {
-                        Text("Register Event", modifier = Modifier.padding(horizontal = 8.dp))
+                        if (isRegistering) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        } else {
+                            Text(
+                                text = if (event.status == "OPEN") "Register Event" else "Closed",
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        }
                     }
                 }
             }
@@ -153,84 +195,81 @@ fun EventDetailsContent(
                     )
                 }
 
-                // Back Button
-                IconButton(
-                    onClick = onBackClick,
-                    modifier = Modifier.padding(top = 40.dp, start = 12.dp).align(Alignment.TopStart)
+                // Top Controls Overlay
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 40.dp, start = 12.dp, end = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Surface(shape = androidx.compose.foundation.shape.CircleShape, color = Color.Black.copy(alpha = 0.4f)) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = Color.White, modifier = Modifier.padding(8.dp))
+                    IconButton(onClick = onBackClick) {
+                        Surface(shape = CircleShape, color = Color.Black.copy(alpha = 0.4f)) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = Color.White, modifier = Modifier.padding(8.dp))
+                        }
+                    }
+
+                    if (isAuthor) {
+                        IconButton(onClick = onEditClick) {
+                            Surface(shape = CircleShape, color = Color.Black.copy(alpha = 0.4f)) {
+                                Icon(Icons.Default.Edit, "Edit", tint = Color.White, modifier = Modifier.padding(8.dp))
+                            }
+                        }
                     }
                 }
-            }
+            } // End of Box
 
-            // --- 2. Main Content Section ---
+            // --- 2. Main Content Section (Correctly outside the Image Box) ---
             Column(modifier = Modifier.padding(20.dp)) {
-
-                // Title and Status
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(
                         text = event.name,
                         style = MaterialTheme.typography.headlineMedium,
                         modifier = Modifier.weight(1f),
-                        fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold
                     )
                     StatusLabel(event.status)
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // --- 3. Wrapped Categories (FlowRow) ---
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(0.dp) // Space between wrapped rows
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     event.categories.forEach { cat ->
-                        androidx.compose.material3.SuggestionChip(
+                        SuggestionChip(
                             onClick = { },
-                            label = {
-                                Text(
-                                    text = cat.category,
-                                    color = Color.White // Change text color to white
-                                )
-                            },
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                            label = { Text(cat.category, color = Color.White) },
                             shape = RoundedCornerShape(8.dp),
+                            colors = SuggestionChipDefaults.suggestionChipColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            ),
+                            border = null
                         )
                     }
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // --- 4. Social Bar (Like, Dislike, Comment) ---
                 Surface(
                     tonalElevation = 2.dp,
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Start
-                    ) {
-                        // Like
+                    Row(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
                         InteractionButton(
                             icon = if (isLiked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
                             label = "${event.likes + if (isLiked) 1 else 0}",
                             color = if (isLiked) Color.Red else MaterialTheme.colorScheme.onSurface,
                             onClick = onToggleLike
                         )
-
-                        // Dislike
                         InteractionButton(
                             icon = if (isDisliked) Icons.Filled.ThumbDown else Icons.Outlined.ThumbDownOffAlt,
                             label = "Dislike",
-                            color = if (isDisliked) Color.DarkGray else MaterialTheme.colorScheme.onSurface,
                             onClick = onToggleDislike
                         )
-
-                        // Comment
                         InteractionButton(
                             icon = Icons.Outlined.ChatBubbleOutline,
                             label = "Comment",
@@ -241,25 +280,15 @@ fun EventDetailsContent(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // --- 5. Info Grid ---
-                InfoSection(
-                    icon = androidx.compose.material.icons.Icons.Default.DateRange,
-                    title = "Event Date",
-                    subtitle = "${event.dateStart} - ${event.dateEnd}"
-                )
+                InfoSection(Icons.Default.DateRange, "Event Date", "${event.dateStart} - ${event.dateEnd}")
 
                 if (event.quota != null) {
                     Spacer(modifier = Modifier.height(16.dp))
-                    InfoSection(
-                        icon = androidx.compose.material.icons.Icons.Default.Person,
-                        title = "Availability",
-                        subtitle = "${event.quota} Slots Available"
-                    )
+                    InfoSection(Icons.Default.Person, "Availability", "${event.quota} Slots Available")
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
-
-                Text("About Event", style = MaterialTheme.typography.titleLarge)
+                Text("About Event", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = event.description,
@@ -272,18 +301,11 @@ fun EventDetailsContent(
 }
 
 @Composable
-fun InteractionButton(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    color: Color = MaterialTheme.colorScheme.onSurface,
-    onClick: () -> Unit
-) {
-    androidx.compose.material3.TextButton(onClick = onClick) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(20.dp))
-            Spacer(modifier = Modifier.width(6.dp))
-            Text(label, style = MaterialTheme.typography.labelLarge, color = color)
-        }
+fun InteractionButton(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, color: Color = MaterialTheme.colorScheme.onSurface, onClick: () -> Unit) {
+    TextButton (onClick = onClick) {
+        Icon(icon, null, tint = color, modifier = Modifier.size(20.dp))
+        Spacer(Modifier.width(6.dp))
+        Text(label, style = MaterialTheme.typography.labelLarge, color = color)
     }
 }
 

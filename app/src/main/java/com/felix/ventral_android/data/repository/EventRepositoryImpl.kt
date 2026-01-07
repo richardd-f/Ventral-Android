@@ -2,6 +2,7 @@ package com.felix.ventral_android.data.repository
 
 import android.net.Uri
 import com.felix.ventral_android.data.dto.CreateEventRequestDto
+import com.felix.ventral_android.data.dto.UpdateEventRequestDto
 import com.felix.ventral_android.data.dto.toDomain
 import com.felix.ventral_android.data.local.LocalDataStore
 import com.felix.ventral_android.data.network.api.EventApiService
@@ -72,9 +73,9 @@ class EventRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun updateEvent(eventId: String, updates: Map<String, Any>): Result<Event> {
+    override suspend fun updateEvent(eventId: String, updateRequest: UpdateEventRequestDto ): Result<Event> {
         return handleApiCall(
-            call = { apiService.updateEvent(eventId, updates) },
+            call = { apiService.updateEvent(eventId, updateRequest) },
             map = { dto -> dto.toDomain() }
         )
     }
@@ -93,4 +94,10 @@ class EventRepositoryImpl @Inject constructor(
         )
     }
 
+    override suspend fun applyEvent(eventId: String): Result<Unit> {
+        return handleApiCall(
+            call = {apiService.applyEvent(eventId)},
+            map = { application -> Unit}
+        )
+    }
 }
