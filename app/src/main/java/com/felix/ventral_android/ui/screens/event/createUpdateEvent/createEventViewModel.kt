@@ -47,8 +47,8 @@ class CreateEventViewModel @Inject constructor(
 
                 startDate = fromHumanToDateIso(event.dateStart.split(",")[0]),
                 endDate = fromHumanToDateIso(event.dateEnd.split(",")[0]),
-                startTime = fromHumanToTime(event.dateStart.split(",")[1],),
-                endTime = fromHumanToTime(event.dateEnd.split(",")[1]),
+                startTime = fromHumanToTime(event.dateStart.split(", ")[1],),
+                endTime = fromHumanToTime(event.dateEnd.split(", ")[1]),
 
                 price = event.price.toString(),
                 quota = event.quota?.toString() ?: "",
