@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -46,6 +47,10 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.felix.ventral_android.domain.model.Event
 import com.felix.ventral_android.navigation.Screen
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import java.util.Locale
 
 // THEME: Define the color palette provided
 private val DarkPurple = Color(0xFF120C1F)
@@ -153,6 +158,24 @@ fun HomepageContent(
     }
 }
 
+// FIX: Create a helper function to format the date and time string
+@Composable
+private fun formatDisplayDate(isoDate: String): String {
+    return remember(isoDate) {
+        try {
+            val odt = OffsetDateTime.parse(isoDate)
+            // Use a formatter that includes both date and time
+            val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.SHORT)
+                .withLocale(Locale.ENGLISH) // Or Locale.getDefault()
+            odt.format(formatter) // e.g., "January 7, 2026 at 8:00 AM"
+        } catch (e: Exception) {
+            // If parsing fails, return a safe fallback
+            isoDate.replace("T", " at ").substringBefore(".")
+        }
+    }
+}
+
+
 @Composable
 fun EventCard(event: Event, onApplyClicked: () -> Unit) {
     Card(
@@ -219,10 +242,13 @@ fun EventCard(event: Event, onApplyClicked: () -> Unit) {
                     // THEME: Use PureWhite for subheadings
                     color = PureWhite
                 )
+                // This block now correctly uses the updated formatter
                 Spacer(modifier = Modifier.height(12.dp))
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     IconWithText(icon = Icons.Default.LocationOn, text = "Online / To be confirmed")
-                    IconWithText(icon = Icons.Default.CalendarToday, text = event.dateStart)
+                    // Use the formatter for the start and end dates
+                    IconWithText(icon = Icons.Default.CalendarToday, text = "Starts: ${formatDisplayDate(event.dateStart)}")
+                    IconWithText(icon = Icons.Default.CalendarToday, text = "Ends: ${formatDisplayDate(event.dateEnd)}")
                     IconWithText(icon = Icons.Outlined.AttachMoney, text = event.price.toString())
                 }
             }
@@ -256,10 +282,9 @@ fun HomepagePreview() {
     val previewState = HomepageUiState(
         isLoading = false,
         events = listOf(
-            // FIX: Replaced "Cantus Euforia" with a generic placeholder name for the preview
             Event(
                 id = "1", authorId = "a1", name = "Sample Event Title", description = "This is a sample description for the preview event.",
-                dateStart = "2026-01-17", dateEnd = "2026-01-18", price = 50000, status = "active", quota = 100,
+                dateStart = "2026-01-17T08:00:00.000Z", dateEnd = "2026-01-18T22:00:00.000Z", price = 50000, status = "active", quota = 100,
                 images = emptyList(), categories = emptyList(), likes = 123
             )
         )
