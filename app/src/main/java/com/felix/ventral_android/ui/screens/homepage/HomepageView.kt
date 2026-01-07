@@ -2,6 +2,8 @@ package com.felix.ventral_android.ui.screens.homepage
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,7 +37,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -186,10 +190,13 @@ private fun formatPriceToRupiah(price: Int): String {
 }
 
 
-
-
 @Composable
 fun EventCard(event: Event, onApplyClicked: () -> Unit) {
+    var isLiked by remember { mutableStateOf(false) }
+    var isDisliked by remember { mutableStateOf(false) }
+    var likeCount by remember { mutableStateOf(event.likes) }
+    var dislikeCount by remember { mutableStateOf(0) }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = DarkPurple.copy(alpha = 0.6f)),
@@ -230,8 +237,51 @@ fun EventCard(event: Event, onApplyClicked: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        IconWithText(icon = Icons.Default.ThumbUp, text = event.likes.toString())
-                        IconWithText(icon = Icons.Default.ThumbDown, text = "0")
+                        // Like Button Logic
+                        IconWithText(
+                            icon = Icons.Default.ThumbUp,
+                            text = likeCount.toString(),
+                            iconColor = if (isLiked) AccentPurple else LightPurple,
+                            modifier = Modifier.clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) {
+                                if (isLiked) {
+                                    likeCount--
+                                    isLiked = false
+                                } else {
+                                    likeCount++
+                                    isLiked = true
+                                    if (isDisliked) {
+                                        dislikeCount--
+                                        isDisliked = false
+                                    }
+                                }
+                            }
+                        )
+
+                        // Dislike Button Logic
+                        IconWithText(
+                            icon = Icons.Default.ThumbDown,
+                            text = dislikeCount.toString(),
+                            iconColor = if (isDisliked) AccentPurple else LightPurple,
+                            modifier = Modifier.clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) {
+                                if (isDisliked) {
+                                    dislikeCount--
+                                    isDisliked = false
+                                } else {
+                                    dislikeCount++
+                                    isDisliked = true
+                                    if (isLiked) {
+                                        likeCount--
+                                        isLiked = false
+                                    }
+                                }
+                            }
+                        )
                         IconWithText(icon = Icons.Default.Comment, text = "")
                     }
                     Button(
@@ -285,13 +335,21 @@ fun EventCard(event: Event, onApplyClicked: () -> Unit) {
 }
 
 @Composable
-fun IconWithText(icon: androidx.compose.ui.graphics.vector.ImageVector, text: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+fun IconWithText(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    text: String,
+    modifier: Modifier = Modifier,
+    iconColor: Color = LightPurple
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+    ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
             modifier = Modifier.size(18.dp),
-            tint = LightPurple
+            tint = iconColor
         )
         Spacer(modifier = Modifier.padding(horizontal = 4.dp))
         Text(
