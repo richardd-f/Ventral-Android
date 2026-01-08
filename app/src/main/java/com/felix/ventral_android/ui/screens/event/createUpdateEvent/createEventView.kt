@@ -275,7 +275,7 @@ fun CreateEventContent(
 
                     FilterChip(
                         selected = selected,
-                        onClick = { onCategoryToggled(category.category) },
+                        onClick = { onCategoryToggled(category.id) },
                         label = { Text(category.category) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = AccentPurple,

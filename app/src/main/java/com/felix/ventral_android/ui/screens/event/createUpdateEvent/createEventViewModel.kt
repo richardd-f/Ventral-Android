@@ -159,8 +159,7 @@ class CreateEventViewModel @Inject constructor(
                 ?.takeIf { it != state.originalEvent?.categories },
 
             images = state.images
-                ?.filter { it.startsWith("file://") }
-                ?.takeIf { it.isNotEmpty() }
+                ?.takeIf {it != state.originalEvent?.images }
         )
 
         performAction(onSuccess) { eventRepository.updateEvent(eventId, request) }

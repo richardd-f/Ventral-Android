@@ -74,6 +74,37 @@ class EventRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateEvent(eventId: String, updateRequest: UpdateEventRequestDto ): Result<Event> {
+        // extract only URI on images (considered as new image)
+        val uriImages = updateRequest.images
+            ?.filter { it.startsWith("file://") }
+            ?.takeIf { it.isNotEmpty() }
+
+        val nonUriImages = updateRequest.images
+            ?.filter { it.startsWith("http://") || it.startsWith("https://") }
+            ?.takeIf { it.isNotEmpty() }
+
+        // upload new image to cloudinary
+        val uploadedImages = try {
+            uriImages
+                ?.map { imgUri ->
+                    val uri = Uri.parse(imgUri)
+                    cloudinaryManager.uploadImage(uri) // suspend
+                }
+                ?.takeIf { it.isNotEmpty() }
+                ?: listOf("https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg")
+
+        } catch (e: Exception) {
+            return Result.failure(Exception("Image upload failed: ${e.message}"))
+        }
+
+        // combine old url, and new url
+        val finalImageUrls = (nonUriImages.orEmpty() + uploadedImages)
+                .takeIf { it.isNotEmpty() }
+
+        if(updateRequest.images != null){
+            updateRequest.images = finalImageUrls
+        }
+
         return handleApiCall(
             call = { apiService.updateEvent(eventId, updateRequest) },
             map = { dto -> dto.toDomain() }
