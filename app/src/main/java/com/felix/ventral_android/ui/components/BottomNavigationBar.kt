@@ -25,6 +25,7 @@ import okhttp3.Route
 fun BottomNavigationBar(navController: NavController) {
     val screens = listOf(
         BottomBarScreen.Home,
+        BottomBarScreen.Search,
         BottomBarScreen.Profile
     )
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -65,5 +66,6 @@ sealed class BottomBarScreen(
     val icon: ImageVector
 ) {
     object Home : BottomBarScreen(Screen.Home.route, "Home", Icons.Default.Home)
+    object Search : BottomBarScreen(Screen.Search.route, "Search", Icons.Default.Search)
     object Profile : BottomBarScreen(Screen.Profile.route, "Profile", Icons.Default.Person)
 }

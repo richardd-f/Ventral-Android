@@ -23,6 +23,8 @@ import com.felix.ventral_android.ui.screens.homepage.HomePage
 import com.felix.ventral_android.ui.screens.homepage.HomepageViewModel
 import com.felix.ventral_android.ui.screens.profile.ProfilePage
 import com.felix.ventral_android.ui.screens.profile.ProfileViewModel
+import com.felix.ventral_android.ui.screens.search.SearchPage
+import com.felix.ventral_android.ui.screens.search.SearchViewModel
 
 sealed class Screen(val route: String) {
     object Home : Screen("home")
@@ -31,13 +33,14 @@ sealed class Screen(val route: String) {
     object Register : Screen("register")
     object CreateEvent : Screen("createEvent")
     object EventDetails : Screen("eventDetails")
+    object Search : Screen("search")
 
     companion object {
         // Set screen that has bottom bar
         val bottomBarRoutes = setOf(
             Home.route,
             Profile.route,
-
+            Search.route
         )
     }
 }
@@ -85,6 +88,12 @@ sealed class Screen(val route: String) {
                 composable(Screen.Profile.route) {
                     val viewModel: ProfileViewModel = hiltViewModel()
                     ProfilePage(navController, viewModel)
+                }
+
+                // Search
+                composable(Screen.Search.route) {
+                    val viewModel: SearchViewModel = hiltViewModel()
+                    SearchPage(navController, viewModel)
                 }
 
                 // Create Event (NO bottom bar)
