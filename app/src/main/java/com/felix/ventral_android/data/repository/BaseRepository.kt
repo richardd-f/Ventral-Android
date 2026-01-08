@@ -31,7 +31,7 @@ abstract class BaseRepository {
                     null
                 }
 
-                val errorMessage = errorResponse?.errors ?: errorResponse?.message ?: "Unknown Error"
+                val errorMessage = errorResponse?.errors ?: errorResponse?.message ?: "Unknown Errorr"
                 Result.failure(Exception(errorMessage))
             }
         } catch (e: Exception) {

@@ -62,7 +62,7 @@ sealed class Screen(val route: String) {
 
             NavHost(
                 navController = navController,
-                startDestination = Screen.Home.route,
+                startDestination = Screen.Profile.route,
                 modifier = Modifier.padding(innerPadding)
             ) {
 

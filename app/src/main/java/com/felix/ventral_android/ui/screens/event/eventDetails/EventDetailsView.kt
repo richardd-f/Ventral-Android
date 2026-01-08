@@ -56,6 +56,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.ThumbDownOffAlt
@@ -94,6 +95,9 @@ fun EventDetailsPage(
     val onRegisterSuccess: () -> Unit = {
         navController.popBackStack()
     }
+    val onDeleteSuccess: () -> Unit = {
+        navController.popBackStack()
+    }
 
     event?.let { eventData ->
         EventDetailsContent(
@@ -107,7 +111,8 @@ fun EventDetailsPage(
                 navController.navigate(Screen.CreateEvent.route)
             },
             onToggleLike = { viewModel.toggleLike() },
-            onRegisterClick = { viewModel.registerEvent(onRegisterSuccess) }
+            onRegisterClick = { viewModel.registerEvent(onRegisterSuccess) },
+            onDeleteClick = {viewModel.deleteEvent (onDeleteSuccess) }
         )
     }
 }
@@ -120,6 +125,7 @@ fun EventDetailsContent(
     isRegistering: Boolean,
     isAuthor: Boolean,
     onEditClick: () -> Unit = {},
+    onDeleteClick: ()-> Unit ={},
     isDisliked: Boolean = false,
     onBackClick: () -> Unit,
     onToggleLike: () -> Unit,
@@ -213,6 +219,12 @@ fun EventDetailsContent(
                         IconButton(onClick = onEditClick) {
                             Surface(shape = CircleShape, color = Color.Black.copy(alpha = 0.4f)) {
                                 Icon(Icons.Default.Edit, "Edit", tint = Color.White, modifier = Modifier.padding(8.dp))
+                            }
+                        }
+
+                        IconButton(onClick = onDeleteClick) {
+                            Surface(shape = CircleShape, color = Color.Black.copy(alpha = 0.4f)) {
+                                Icon(Icons.Default.Delete, "Delete", tint = Color.White, modifier = Modifier.padding(8.dp))
                             }
                         }
                     }

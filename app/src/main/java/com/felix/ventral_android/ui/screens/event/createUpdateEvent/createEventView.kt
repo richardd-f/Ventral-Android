@@ -52,8 +52,18 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.font.FontStyle
 import com.felix.ventral_android.domain.model.Event
 import com.felix.ventral_android.ui.screens.event.createUpdateEvent.components.ImagePreviewItem
@@ -78,7 +88,13 @@ fun CreateEventPage(
     val state by viewModel.uiState.collectAsState()
 
     val onNavigateBack = { navController.navigate(Screen.Profile.route) }
-    val onEventCreated = { navController.navigate(Screen.Home.route) }
+    val onEventCreated: (Event)->Unit = {event ->
+        navController.previousBackStackEntry
+            ?.savedStateHandle
+            ?.set("event", event)
+
+        navController.popBackStack()
+    }
 
     CreateEventContent(
         state = state,
@@ -93,17 +109,24 @@ fun CreateEventPage(
         onQuotaChange = viewModel::onQuotaChange,
         onImagesSelected = viewModel::onImagesSelected,
         onCategoryToggled = viewModel::onCategoryToggled,
+        onAddressChange = viewModel::onAddressChange,
+        onCityChange = viewModel::onCityChange,
+        onStatusChange = viewModel::onStatusChange,
         // Actions
         onImagePreviewDelete = viewModel::onImagePreviewDelete,
         onCreateEvent = { viewModel.submit(onEventCreated) },
-        onNavigateBack = onNavigateBack
+        onNavigateBack = onNavigateBack,
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateEventContent(
     state: CreateEventUiState,
     // Input Callbacks
+    onAddressChange: (String) -> Unit,
+    onCityChange: (String) -> Unit,
+    onStatusChange: (String) -> Unit,
     onEventNameChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
     onStartDateChange: (String) -> Unit,
@@ -119,6 +142,9 @@ fun CreateEventContent(
     onCreateEvent: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
+    var statusExpanded by remember { mutableStateOf(false) }
+    val statusOptions = listOf("OPEN", "CLOSED")
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -180,6 +206,90 @@ fun CreateEventContent(
                 modifier = Modifier.height(120.dp),
                 icon = Icons.Default.Info
             )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // LOCATION SECTION
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // --- NEW: Location Section ---
+            Text(
+                text = "Location",
+                color = AccentPurple,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.Start)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            SimpleInput(
+                value = state.address,
+                onValueChange = onAddressChange,
+                label = "Full Address",
+                icon = Icons.Default.LocationOn,
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            SimpleInput(
+                value = state.city,
+                onValueChange = onCityChange,
+                label = "City",
+                icon = Icons.Default.Place,
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // --- NEW: Event Status (Dropdown) ---
+            Text(
+                text = "Event Status",
+                color = AccentPurple,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.Start)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            ExposedDropdownMenuBox (
+                expanded = statusExpanded,
+                onExpandedChange = { statusExpanded = !statusExpanded },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedTextField(
+                    value = state.status.ifEmpty { "Select Status" },
+                    onValueChange = {},
+                    readOnly = true,
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusExpanded) },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = PureWhite,
+                        unfocusedTextColor = PureWhite,
+                        focusedBorderColor = AccentPurple,
+                        unfocusedBorderColor = PureWhite.copy(alpha = 0.3f),
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                    ),
+                    modifier = Modifier.menuAnchor().fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    leadingIcon = { Icon(Icons.Default.Info, contentDescription = null, tint = AccentPurple) }
+                )
+
+                ExposedDropdownMenu(
+                    expanded = statusExpanded,
+                    onDismissRequest = { statusExpanded = false },
+                    modifier = Modifier.background(DarkPurple)
+                ) {
+                    statusOptions.forEach { option ->
+                        DropdownMenuItem(
+                            text = { Text(option, color = PureWhite) },
+                            onClick = {
+                                onStatusChange(option)
+                                statusExpanded = false
+                            },
+                            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                        )
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 

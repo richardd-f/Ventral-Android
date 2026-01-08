@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.lang.reflect.TypeVariable
 import javax.inject.Inject
 
 
@@ -43,8 +44,6 @@ class CreateEventViewModel @Inject constructor(
                 targetEventId = event.id,
                 eventName = event.name,
                 description = event.description,
-                // Note: You'll need to parse your human-readable back to state fields
-                // or handle the ISO conversion here if needed
 
                 startDate = fromHumanToDateIso(event.dateStart.split(",")[0]),
                 endDate = fromHumanToDateIso(event.dateEnd.split(",")[0]),
@@ -54,12 +53,14 @@ class CreateEventViewModel @Inject constructor(
                 price = event.price.toString(),
                 quota = event.quota?.toString() ?: "",
                 selectedCategoryIds = event.categories.map { cat -> cat.id },
-                images = event.images
+                images = event.images,
+                address = event.address,
+                city = event.city
             )
         }
     }
 
-    // --- Existing logic stays the same ---
+
     private fun fetchCategories() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
@@ -82,6 +83,18 @@ class CreateEventViewModel @Inject constructor(
                 }
         }
     }
+
+    fun onStatusChange(newStatus: String) {
+        _uiState.update { it.copy(status = newStatus) }
+    }
+
+    fun onAddressChange(newAddress: String) {
+        _uiState.update { it.copy(address = newAddress) }
+    }
+
+    fun onCityChange(newCity: String) {
+        _uiState.update { it.copy(city = newCity) }
+    }
     fun onEventNameChange(text: String) = update { it.copy(eventName = text) }
     fun onDescriptionChange(text: String) = update { it.copy(description = text) }
     fun onStartDateChange(text: String) = update { it.copy(startDate = text) }
@@ -94,7 +107,7 @@ class CreateEventViewModel @Inject constructor(
         currentState.copy(images = currentState.images + uris)
     }
 
-    // changed to category name not id (when called this func, the passed value is category name)
+
     fun onCategoryToggled(categoryId: String) = update {
         val updated = if (it.selectedCategoryIds.contains(categoryId)) {
             it.selectedCategoryIds - categoryId
@@ -112,7 +125,7 @@ class CreateEventViewModel @Inject constructor(
 
     /** * Combined Save Function
      */
-    fun submit(onSuccess: () -> Unit) {
+    fun submit(onSuccess: (Event) -> Unit) {
         val state = uiState.value
         if (state.mode == FormMode.CREATE ) {
             createEvent(onSuccess)
@@ -122,7 +135,7 @@ class CreateEventViewModel @Inject constructor(
     }
 
     /** Keep existing Create logic untouched */
-    fun createEvent(onSuccess: () -> Unit) {
+    fun createEvent(onSuccess: (Event) -> Unit) {
         val state = uiState.value
         val request = CreateEventRequestDto(
             name = state.eventName.trim(),
@@ -130,17 +143,21 @@ class CreateEventViewModel @Inject constructor(
             dateStart = toIsoString(state.startDate, state.startTime),
             dateEnd = toIsoString(state.endDate, state.endTime),
             price = state.price.toIntOrNull() ?: 0,
-            status = "OPEN",
+            status = state.status,
+
             quota = state.quota.toIntOrNull(),
             images = state.images,
-            categories = state.selectedCategoryIds.toList()
+            categories = state.selectedCategoryIds.toList(),
+
+            address = state.address.trim(),
+            city = state.city.trim()
         )
 
         performAction(onSuccess) { eventRepository.createEvent(request) }
     }
 
     /** New Update logic */
-    private fun updateExistingEvent(onSuccess: () -> Unit) {
+    private fun updateExistingEvent(onSuccess: (Event) -> Unit) {
         val state = uiState.value
         val eventId = state.targetEventId ?: return
 
@@ -164,30 +181,46 @@ class CreateEventViewModel @Inject constructor(
                 ?.takeIf { it != state.originalEvent?.quota },
 
             categories = state.selectedCategoryIds
-                ?.takeIf { it != state.originalEvent?.categories },
+                .takeIf { it != state.originalEvent?.categories?.map { cat -> cat.id } },
 
             images = state.images
-                ?.takeIf {it != state.originalEvent?.images }
+                .takeIf { it != state.originalEvent?.images },
+
+            // New Fields Added Here
+            address = state.address.trim()
+                .takeIf { it != state.originalEvent?.address },
+
+            city = state.city.trim()
+                .takeIf { it != state.originalEvent?.city },
+
+            status = state.status
+                .takeIf { it != state.originalEvent?.status }
         )
 
         performAction(onSuccess) { eventRepository.updateEvent(eventId, request) }
     }
 
     /** Helper to avoid repeating loading/error logic */
-    private fun <T> performAction(onSuccess: () -> Unit, action: suspend () -> Result<T>) {
+    private fun <T> performAction(
+        onSuccess: (T) -> Unit,
+        action: suspend () -> Result<T>
+    ) {
         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+
         viewModelScope.launch {
-            action().onSuccess {
-                _uiState.update { it.copy(isLoading = false) }
-                onSuccess()
-            }.onFailure { error ->
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = error.message ?: "Action failed"
-                    )
+            action()
+                .onSuccess { result ->
+                    _uiState.update { it.copy(isLoading = false) }
+                    onSuccess(result) // ✅ pass result
                 }
-            }
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = error.message ?: "Action failed"
+                        )
+                    }
+                }
         }
     }
 
@@ -196,27 +229,38 @@ class CreateEventViewModel @Inject constructor(
     }
 }
 
-/** UI State updated to hold Category objects and selected IDs */
 data class CreateEventUiState(
     val mode: FormMode = FormMode.CREATE,
     val originalEvent: Event? = null,
     val targetEventId: String? = null,
+
+    // Basic Info
     val eventName: String = "",
     val description: String = "",
+    val status: String = "OPEN",
+    val address: String = "",
+    val city : String = "",
+
+    // Date & Time
     val startDate: String = "",
     val startTime: String = "",
     val endDate: String = "",
     val endTime: String = "",
+
+    // Ticket Details
     val price: String = "",
     val quota: String = "",
+
+    // UI State
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
 
     // Images
     val images: List<String> = emptyList(),
 
-
-    // Categories fetched from API
+    // Categories
     val availableCategories: List<Category> = emptyList(),
-    val selectedCategoryIds: List<String> = emptyList() // store IDs
+    val selectedCategoryIds: List<String> = emptyList(),
+
+    val finalEvent: Event? = null
 )

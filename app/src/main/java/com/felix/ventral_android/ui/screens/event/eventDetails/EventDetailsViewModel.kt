@@ -27,9 +27,12 @@ class EventDetailsViewModel @Inject constructor(
     private val _isLiked = MutableStateFlow(false)
     val isLiked: StateFlow<Boolean> = _isLiked.asStateFlow()
 
-    // NEW: Loading state for registration
+
     private val _isRegistering = MutableStateFlow(false)
     val isRegistering: StateFlow<Boolean> = _isRegistering.asStateFlow()
+
+    private val _isDeleting = MutableStateFlow(false)
+    val isDeleting: StateFlow<Boolean> = _isDeleting.asStateFlow()
 
     // Reactive isAuthor check
     val isAuthor: StateFlow<Boolean> = combine(
@@ -69,6 +72,25 @@ class EventDetailsViewModel @Inject constructor(
             }.onFailure { error ->
                 // You might want to expose an error message state here
                 println("Error registering: ${error.message}")
+            }
+        }
+    }
+
+    fun deleteEvent(onDeleteSuccess:()->Unit){
+        val eventId = _eventState.value?.id ?: return
+
+        viewModelScope.launch {
+            _isDeleting.value = true
+
+            val result = eventRepository.deleteEvent(eventId)
+
+            _isDeleting.value = false
+
+            result.onSuccess {
+                onDeleteSuccess()
+            }.onFailure { error ->
+                // You might want to expose an error message state here
+                println("Error delete event: ${error.message}\nEventId = $eventId")
             }
         }
     }

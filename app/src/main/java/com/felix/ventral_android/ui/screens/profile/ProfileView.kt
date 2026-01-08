@@ -10,10 +10,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.pullToRefresh
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -30,101 +32,128 @@ import androidx.navigation.NavController
 import com.felix.ventral_android.navigation.Screen
 import com.felix.ventral_android.ui.components.EventPostCard
 import com.felix.ventral_android.ui.screens.profile.components.ProfileHeader
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 
 
 @Composable
 fun ProfilePage(
     navController: NavController,
     viewModel: ProfileViewModel = hiltViewModel()
-){
+) {
     val state by viewModel.uiState.collectAsState()
 
-    // Checking Login
-    LaunchedEffect (Unit) {
+    // always request when load this page
+    LaunchedEffect(Unit) {
+        viewModel.fetchProfileData()
+    }
+
+    // Navigation events (logout / session expired)
+    LaunchedEffect(Unit) {
         viewModel.navigationEvent.collect { screen ->
             navController.navigate(screen.route) {
-                // Clear stack so user can't "Back" into the profile after logout
-                popUpTo(0) { inclusive = true }
+                popUpTo(Screen.Profile.route) { inclusive = true }
+                launchSingleTop = true
             }
         }
     }
 
-    ProfileContent(navController, state = state)
+    SwipeRefresh(
+        state = rememberSwipeRefreshState(isRefreshing = state.isLoading),
+        onRefresh = { viewModel.fetchProfileData() }
+    ) {
+        ProfileContent(
+            navController = navController,
+            state = state,
+            onRefresh = {
+                viewModel.fetchProfileData()
+            }
+        )
+    }
 }
 
 @Composable
 fun ProfileContent(
     navController: NavController,
-    state: ProfileUiState
+    state: ProfileUiState,
+    onRefresh: () -> Unit
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.background,
-                        MaterialTheme.colorScheme.secondary
-                    )
-                )
-            )
-            .padding(top = 50.dp)
+    val swipeRefreshState = rememberSwipeRefreshState(
+        isRefreshing = state.isLoading
+    )
+
+    SwipeRefresh(
+        state = swipeRefreshState,
+        onRefresh = onRefresh
     ) {
-
-        if (state.isLoading) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center),
-                color = MaterialTheme.colorScheme.onPrimary
-            )
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(
-                    bottom = 96.dp
-                )
-            ) {
-                item { ProfileHeader(state) }
-
-                item {
-                    Text(
-                        text = "My Events",
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(
-                            horizontal = 24.dp,
-                            vertical = 16.dp
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.background,
+                            MaterialTheme.colorScheme.secondary
                         )
                     )
-                }
+                )
+                .padding(top = 50.dp)
+        ) {
 
-                items(state.posts) { post ->
-                    EventPostCard(
-                        post,
-                        navController = navController
-                    )
+            if (state.isLoading && state.posts.isEmpty()) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 96.dp)
+                ) {
+                    item {
+                        ProfileHeader(state)
+                    }
+
+                    item {
+                        Text(
+                            text = "My Events",
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(
+                                horizontal = 24.dp,
+                                vertical = 16.dp
+                            )
+                        )
+                    }
+
+                    items(state.posts) { post ->
+                        EventPostCard(
+                            post = post,
+                            navController = navController
+                        )
+                    }
                 }
             }
-        }
 
-        // + button for create event
-        FloatingActionButton(
-            onClick = {
-                navController.navigate(Screen.CreateEvent.route)
-            },
-            containerColor = MaterialTheme.colorScheme.onSurface,
-            contentColor = MaterialTheme.colorScheme.background,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(
-                    end = 24.dp,
-                    bottom = 88.dp
+            FloatingActionButton(
+                onClick = {
+                    navController.navigate(Screen.CreateEvent.route)
+                },
+                containerColor = MaterialTheme.colorScheme.onSurface,
+                contentColor = MaterialTheme.colorScheme.background,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(
+                        end = 24.dp,
+                        bottom = 88.dp
+                    )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Create Event"
                 )
-        ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = "Create Event"
-            )
+            }
         }
     }
 }
