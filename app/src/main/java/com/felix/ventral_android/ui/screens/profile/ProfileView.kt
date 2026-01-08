@@ -43,6 +43,11 @@ fun ProfilePage(
 ) {
     val state by viewModel.uiState.collectAsState()
 
+    // always request when load this page
+    LaunchedEffect(Unit) {
+        viewModel.fetchProfileData()
+    }
+
     // Navigation events (logout / session expired)
     LaunchedEffect(Unit) {
         viewModel.navigationEvent.collect { screen ->

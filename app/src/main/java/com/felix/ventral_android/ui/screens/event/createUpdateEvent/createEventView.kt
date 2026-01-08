@@ -88,7 +88,13 @@ fun CreateEventPage(
     val state by viewModel.uiState.collectAsState()
 
     val onNavigateBack = { navController.navigate(Screen.Profile.route) }
-    val onEventCreated: ()->Unit = { navController.popBackStack() }
+    val onEventCreated: (Event)->Unit = {event ->
+        navController.previousBackStackEntry
+            ?.savedStateHandle
+            ?.set("event", event)
+
+        navController.popBackStack()
+    }
 
     CreateEventContent(
         state = state,

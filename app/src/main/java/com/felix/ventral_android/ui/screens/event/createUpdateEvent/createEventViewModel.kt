@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.lang.reflect.TypeVariable
 import javax.inject.Inject
 
 
@@ -52,7 +53,9 @@ class CreateEventViewModel @Inject constructor(
                 price = event.price.toString(),
                 quota = event.quota?.toString() ?: "",
                 selectedCategoryIds = event.categories.map { cat -> cat.id },
-                images = event.images
+                images = event.images,
+                address = event.address,
+                city = event.city
             )
         }
     }
@@ -122,7 +125,7 @@ class CreateEventViewModel @Inject constructor(
 
     /** * Combined Save Function
      */
-    fun submit(onSuccess: () -> Unit) {
+    fun submit(onSuccess: (Event) -> Unit) {
         val state = uiState.value
         if (state.mode == FormMode.CREATE ) {
             createEvent(onSuccess)
@@ -132,7 +135,7 @@ class CreateEventViewModel @Inject constructor(
     }
 
     /** Keep existing Create logic untouched */
-    fun createEvent(onSuccess: () -> Unit) {
+    fun createEvent(onSuccess: (Event) -> Unit) {
         val state = uiState.value
         val request = CreateEventRequestDto(
             name = state.eventName.trim(),
@@ -154,7 +157,7 @@ class CreateEventViewModel @Inject constructor(
     }
 
     /** New Update logic */
-    private fun updateExistingEvent(onSuccess: () -> Unit) {
+    private fun updateExistingEvent(onSuccess: (Event) -> Unit) {
         val state = uiState.value
         val eventId = state.targetEventId ?: return
 
@@ -198,20 +201,26 @@ class CreateEventViewModel @Inject constructor(
     }
 
     /** Helper to avoid repeating loading/error logic */
-    private fun <T> performAction(onSuccess: () -> Unit, action: suspend () -> Result<T>) {
+    private fun <T> performAction(
+        onSuccess: (T) -> Unit,
+        action: suspend () -> Result<T>
+    ) {
         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+
         viewModelScope.launch {
-            action().onSuccess {
-                _uiState.update { it.copy(isLoading = false) }
-                onSuccess()
-            }.onFailure { error ->
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = error.message ?: "Action failed"
-                    )
+            action()
+                .onSuccess { result ->
+                    _uiState.update { it.copy(isLoading = false) }
+                    onSuccess(result) // ✅ pass result
                 }
-            }
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = error.message ?: "Action failed"
+                        )
+                    }
+                }
         }
     }
 
@@ -251,5 +260,7 @@ data class CreateEventUiState(
 
     // Categories
     val availableCategories: List<Category> = emptyList(),
-    val selectedCategoryIds: List<String> = emptyList()
+    val selectedCategoryIds: List<String> = emptyList(),
+
+    val finalEvent: Event? = null
 )

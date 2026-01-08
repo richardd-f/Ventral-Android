@@ -18,6 +18,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +42,10 @@ fun HomePage(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
+    LaunchedEffect(Unit) {
+        viewModel.fetchAllEvents()
+    }
+
     Scaffold (
         topBar = {
             HomeTopBar()
@@ -61,8 +66,6 @@ fun HomePage(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeTopBar() {
-    // If TopAppBar is giving you trouble, use the Center one
-    // but styled to look like a simple header
     androidx.compose.material3.TopAppBar(
         title = {
             Text(
@@ -71,7 +74,6 @@ fun HomeTopBar() {
                 fontWeight = FontWeight.Bold
             )
         },
-        // This is key for the "thin" look
         windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.background
@@ -103,14 +105,6 @@ fun HomeContent(
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-//                    item {
-//                        Text(
-//                            text = "Upcoming Events",
-//                            style = MaterialTheme.typography.titleLarge,
-//                            fontWeight = FontWeight.Bold,
-//                            modifier = Modifier.padding(bottom = 8.dp)
-//                        )
-//                    }
 
                     items(state.events, key = { it.id ?: it.name }) { event ->
                         HomeEventCard(
