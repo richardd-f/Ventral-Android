@@ -1,5 +1,6 @@
 package com.felix.ventral_android.ui.screens.profile
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.felix.ventral_android.data.local.LocalDataStore
@@ -26,10 +27,14 @@ class ProfileViewModel @Inject constructor(
     private val localDataStore: LocalDataStore
 ) : ViewModel() {
 
+
     private val _uiState = MutableStateFlow(ProfileUiState())
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
-    private val _navigationEvent = MutableSharedFlow<Screen>()
+    private val _navigationEvent = MutableSharedFlow<Screen>(
+        replay = 1,
+        extraBufferCapacity = 1
+    )
     val navigationEvent = _navigationEvent.asSharedFlow()
 
     init {
@@ -37,15 +42,20 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun fetchProfileData() {
+        Log.d("AUTH_FLOW", "fetchProfileData()")
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
             // 1. Initial ID Check
             val userId = localDataStore.getUserId().first()
             if (userId.isNullOrEmpty()) {
+                Log.d("AUTH_FLOW", "UserID is NULL → emit Login")
                 _navigationEvent.emit(Screen.Login)
                 return@launch
             }
+            Log.d("AUTH_FLOW", "UserID is NOT NULL "+userId)
+            Log.d("AUTH_FLOW", "Auth Token "+localDataStore.getAuthToken().first())
+
 
             // 2. Parallel API Calls
             val userDeferred = async { userRepository.getUserById(userId) }
@@ -85,6 +95,7 @@ class ProfileViewModel @Inject constructor(
     fun logout() {
         viewModelScope.launch {
             localDataStore.clearData()
+            Log.d("AUTH_FLOW", "Logout → emit Login")
             _navigationEvent.emit(Screen.Login)
         }
     }

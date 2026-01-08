@@ -38,7 +38,7 @@ interface EventApiService {
     @DELETE("events/{eventId}")
     suspend fun deleteEvent(
         @Path("eventId") eventId: String
-    ): Response<ApiResponse<Unit>> // Only success/message needed
+    ): Response<ApiResponse<String>> // Only success/message needed
 
 
     @GET("events/categories")
@@ -49,5 +49,6 @@ interface EventApiService {
     suspend fun applyEvent(
         @Path("eventId") eventId: String
     ): Response<ApiResponse<ApplicationDto>>
+
 
 }

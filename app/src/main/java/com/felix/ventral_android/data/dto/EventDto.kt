@@ -40,7 +40,13 @@ data class EventDto(
     val categories: List<EventCategory>,
 
     @SerializedName("_count")
-    val count: EventCountDto
+    val count: EventCountDto,
+
+    @SerializedName("address")
+    val address: String,
+
+    @SerializedName("city")
+    val city: String
 )
 
 data class EventCountDto(
@@ -63,7 +69,9 @@ data class CreateEventRequestDto(
     @SerializedName("quota") val quota: Int?,
     @SerializedName("status") val status: String,
     @SerializedName("images") val images: List<String>,
-    @SerializedName("categories") val categories: List<String>
+    @SerializedName("categories") val categories: List<String>,
+    @SerializedName("address") val address: String,
+    @SerializedName("city") val city: String
 )
 
 data class UpdateEventRequestDto(
@@ -75,7 +83,9 @@ data class UpdateEventRequestDto(
     @SerializedName("quota") val quota: Int? = null,
     @SerializedName("status") val status: String? = null,
     @SerializedName("images") var images: List<String>? = null,
-    @SerializedName("categories") val categories: List<String>? = null
+    @SerializedName("categories") val categories: List<String>? = null,
+    @SerializedName("address") val address: String?,
+    @SerializedName("city") val city: String?
 )
 
 data class EventImage(
@@ -92,8 +102,6 @@ data class EventCategory(
 
 )
 
-
-
 fun EventDto.toDomain(): Event {
     return Event(
         id = this.eventId,
@@ -107,6 +115,8 @@ fun EventDto.toDomain(): Event {
         quota = this.quota,
         images = this.images.map{it.url},
         categories = this.categories.map { it.category.toDomain() },
-        likes = this.count.likes
+        likes = this.count.likes,
+        address = this.address,
+        city = this.city
     )
 }

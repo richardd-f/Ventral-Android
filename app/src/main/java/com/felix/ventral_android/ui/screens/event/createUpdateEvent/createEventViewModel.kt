@@ -43,8 +43,6 @@ class CreateEventViewModel @Inject constructor(
                 targetEventId = event.id,
                 eventName = event.name,
                 description = event.description,
-                // Note: You'll need to parse your human-readable back to state fields
-                // or handle the ISO conversion here if needed
 
                 startDate = fromHumanToDateIso(event.dateStart.split(",")[0]),
                 endDate = fromHumanToDateIso(event.dateEnd.split(",")[0]),
@@ -59,7 +57,7 @@ class CreateEventViewModel @Inject constructor(
         }
     }
 
-    // --- Existing logic stays the same ---
+
     private fun fetchCategories() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
@@ -82,6 +80,18 @@ class CreateEventViewModel @Inject constructor(
                 }
         }
     }
+
+    fun onStatusChange(newStatus: String) {
+        _uiState.update { it.copy(status = newStatus) }
+    }
+
+    fun onAddressChange(newAddress: String) {
+        _uiState.update { it.copy(address = newAddress) }
+    }
+
+    fun onCityChange(newCity: String) {
+        _uiState.update { it.copy(city = newCity) }
+    }
     fun onEventNameChange(text: String) = update { it.copy(eventName = text) }
     fun onDescriptionChange(text: String) = update { it.copy(description = text) }
     fun onStartDateChange(text: String) = update { it.copy(startDate = text) }
@@ -94,7 +104,7 @@ class CreateEventViewModel @Inject constructor(
         currentState.copy(images = currentState.images + uris)
     }
 
-    // changed to category name not id (when called this func, the passed value is category name)
+
     fun onCategoryToggled(categoryId: String) = update {
         val updated = if (it.selectedCategoryIds.contains(categoryId)) {
             it.selectedCategoryIds - categoryId
@@ -130,10 +140,14 @@ class CreateEventViewModel @Inject constructor(
             dateStart = toIsoString(state.startDate, state.startTime),
             dateEnd = toIsoString(state.endDate, state.endTime),
             price = state.price.toIntOrNull() ?: 0,
-            status = "OPEN",
+            status = state.status,
+
             quota = state.quota.toIntOrNull(),
             images = state.images,
-            categories = state.selectedCategoryIds.toList()
+            categories = state.selectedCategoryIds.toList(),
+
+            address = state.address.trim(),
+            city = state.city.trim()
         )
 
         performAction(onSuccess) { eventRepository.createEvent(request) }
@@ -164,10 +178,20 @@ class CreateEventViewModel @Inject constructor(
                 ?.takeIf { it != state.originalEvent?.quota },
 
             categories = state.selectedCategoryIds
-                ?.takeIf { it != state.originalEvent?.categories },
+                .takeIf { it != state.originalEvent?.categories?.map { cat -> cat.id } },
 
             images = state.images
-                ?.takeIf {it != state.originalEvent?.images }
+                .takeIf { it != state.originalEvent?.images },
+
+            // New Fields Added Here
+            address = state.address.trim()
+                .takeIf { it != state.originalEvent?.address },
+
+            city = state.city.trim()
+                .takeIf { it != state.originalEvent?.city },
+
+            status = state.status
+                .takeIf { it != state.originalEvent?.status }
         )
 
         performAction(onSuccess) { eventRepository.updateEvent(eventId, request) }
@@ -196,27 +220,36 @@ class CreateEventViewModel @Inject constructor(
     }
 }
 
-/** UI State updated to hold Category objects and selected IDs */
 data class CreateEventUiState(
     val mode: FormMode = FormMode.CREATE,
     val originalEvent: Event? = null,
     val targetEventId: String? = null,
+
+    // Basic Info
     val eventName: String = "",
     val description: String = "",
+    val status: String = "OPEN",
+    val address: String = "",
+    val city : String = "",
+
+    // Date & Time
     val startDate: String = "",
     val startTime: String = "",
     val endDate: String = "",
     val endTime: String = "",
+
+    // Ticket Details
     val price: String = "",
     val quota: String = "",
+
+    // UI State
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
 
     // Images
     val images: List<String> = emptyList(),
 
-
-    // Categories fetched from API
+    // Categories
     val availableCategories: List<Category> = emptyList(),
-    val selectedCategoryIds: List<String> = emptyList() // store IDs
+    val selectedCategoryIds: List<String> = emptyList()
 )

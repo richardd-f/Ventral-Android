@@ -63,7 +63,9 @@ class EventRepositoryImpl @Inject constructor(
             quota = event.quota,
             status = event.status,
             images = uploadedImages,
-            categories = event.categories
+            categories = event.categories,
+            address = event.address,
+            city = event.city
         )
 
         // 3️⃣ Call API with handleApiCall

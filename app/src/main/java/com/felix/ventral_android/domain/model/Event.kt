@@ -16,5 +16,7 @@ data class Event(
     val quota: Int?,
     val images: List<String>,
     val categories: List<Category>,
-    val likes: Int
+    val likes: Int,
+    val address: String,
+    val city : String
 ) : Parcelable
