@@ -90,7 +90,9 @@ class CreateEventViewModel @Inject constructor(
     fun onEndTimeChange(text: String) = update { it.copy(endTime = text) }
     fun onPriceChange(text: String) = update { it.copy(price = text) }
     fun onQuotaChange(text: String) = update { it.copy(quota = text) }
-    fun onImagesSelected(uris: List<String>) = update { it.copy(images = uris) }
+    fun onImagesSelected(uris: List<String>) = _uiState.update { currentState ->
+        currentState.copy(images = currentState.images + uris)
+    }
 
     // changed to category name not id (when called this func, the passed value is category name)
     fun onCategoryToggled(categoryId: String) = update {
@@ -100,6 +102,12 @@ class CreateEventViewModel @Inject constructor(
             it.selectedCategoryIds + categoryId
         }
         it.copy(selectedCategoryIds = updated)
+    }
+
+    fun onImagePreviewDelete(url: String){
+        update {
+            it.copy(images = it.images.filter { img -> img != url })
+        }
     }
 
     /** * Combined Save Function
@@ -206,6 +214,7 @@ data class CreateEventUiState(
 
     // Images
     val images: List<String> = emptyList(),
+
 
     // Categories fetched from API
     val availableCategories: List<Category> = emptyList(),

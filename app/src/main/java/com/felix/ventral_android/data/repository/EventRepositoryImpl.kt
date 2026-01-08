@@ -76,7 +76,7 @@ class EventRepositoryImpl @Inject constructor(
     override suspend fun updateEvent(eventId: String, updateRequest: UpdateEventRequestDto ): Result<Event> {
         // extract only URI on images (considered as new image)
         val uriImages = updateRequest.images
-            ?.filter { it.startsWith("file://") }
+            ?.filter { !it.startsWith("http") }
             ?.takeIf { it.isNotEmpty() }
 
         val nonUriImages = updateRequest.images
@@ -91,7 +91,7 @@ class EventRepositoryImpl @Inject constructor(
                     cloudinaryManager.uploadImage(uri) // suspend
                 }
                 ?.takeIf { it.isNotEmpty() }
-                ?: listOf("https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg")
+                ?: emptyList()
 
         } catch (e: Exception) {
             return Result.failure(Exception("Image upload failed: ${e.message}"))
@@ -103,6 +103,8 @@ class EventRepositoryImpl @Inject constructor(
 
         if(updateRequest.images != null){
             updateRequest.images = finalImageUrls
+        }else{
+            updateRequest.images = null
         }
 
         return handleApiCall(

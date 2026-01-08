@@ -50,9 +50,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.text.font.FontStyle
 import com.felix.ventral_android.domain.model.Event
+import com.felix.ventral_android.ui.screens.event.createUpdateEvent.components.ImagePreviewItem
 
 @Composable
 fun CreateEventPage(
@@ -90,6 +94,7 @@ fun CreateEventPage(
         onImagesSelected = viewModel::onImagesSelected,
         onCategoryToggled = viewModel::onCategoryToggled,
         // Actions
+        onImagePreviewDelete = viewModel::onImagePreviewDelete,
         onCreateEvent = { viewModel.submit(onEventCreated) },
         onNavigateBack = onNavigateBack
     )
@@ -110,6 +115,7 @@ fun CreateEventContent(
     onImagesSelected: (List<String>) -> Unit,
     onCategoryToggled: (String) -> Unit,
     // Actions
+    onImagePreviewDelete: (String)-> Unit,
     onCreateEvent: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
@@ -201,6 +207,31 @@ fun CreateEventContent(
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text("Upload Images (${state.images.size})")
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Image Preview Section
+            if (state.images.isNotEmpty()) {
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    items(state.images) { uri ->
+                        ImagePreviewItem (
+                            uri = uri,
+                            onDelete = onImagePreviewDelete
+                        )
+                    }
+                }
+            } else {
+                // Optional: Placeholder if no images
+                Text(
+                    text = "No images selected",
+                    color = PureWhite.copy(alpha = 0.5f),
+                    fontSize = 12.sp,
+                    fontStyle = FontStyle.Italic
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
