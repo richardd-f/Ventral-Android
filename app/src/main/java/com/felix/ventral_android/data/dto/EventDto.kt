@@ -74,6 +74,8 @@ data class UpdateEventRequestDto(
     @SerializedName("price") val price: Int? = null,
     @SerializedName("quota") val quota: Int? = null,
     @SerializedName("status") val status: String? = null,
+    @SerializedName("images") val images: List<String>? = null,
+    @SerializedName("categories") val categories: List<String>? = null
 )
 
 data class EventImage(

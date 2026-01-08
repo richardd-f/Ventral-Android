@@ -38,6 +38,7 @@ class CreateEventViewModel @Inject constructor(
     fun setEditMode(event: Event) {
         _uiState.update {
             it.copy(
+                originalEvent = event,
                 mode = FormMode.UPDATE,
                 targetEventId = event.id,
                 eventName = event.name,
@@ -90,6 +91,8 @@ class CreateEventViewModel @Inject constructor(
     fun onPriceChange(text: String) = update { it.copy(price = text) }
     fun onQuotaChange(text: String) = update { it.copy(quota = text) }
     fun onImagesSelected(uris: List<String>) = update { it.copy(images = uris) }
+
+    // changed to category name not id (when called this func, the passed value is category name)
     fun onCategoryToggled(categoryId: String) = update {
         val updated = if (it.selectedCategoryIds.contains(categoryId)) {
             it.selectedCategoryIds - categoryId
@@ -103,9 +106,9 @@ class CreateEventViewModel @Inject constructor(
      */
     fun submit(onSuccess: () -> Unit) {
         val state = uiState.value
-        if (state.mode == FormMode.CREATE) {
+        if (state.mode == FormMode.CREATE ) {
             createEvent(onSuccess)
-        } else {
+        } else if(state.mode == FormMode.UPDATE && state.originalEvent != null) {
             updateExistingEvent(onSuccess)
         }
     }
@@ -134,12 +137,30 @@ class CreateEventViewModel @Inject constructor(
         val eventId = state.targetEventId ?: return
 
         val request = UpdateEventRequestDto(
-            name = state.eventName.trim(),
-            description = state.description.trim(),
-            dateStart = toIsoString(state.startDate, state.startTime),
-            dateEnd = toIsoString(state.endDate, state.endTime),
-            price = state.price.toIntOrNull() ?: 0,
-            quota = state.quota.toIntOrNull(),
+            name = state.eventName.trim()
+                .takeIf { it != state.originalEvent?.name },
+
+            description = state.description.trim()
+                .takeIf { it != state.originalEvent?.description },
+
+            dateStart = toIsoString(state.startDate, state.startTime)
+                .takeIf { it != state.originalEvent?.dateStart },
+
+            dateEnd = toIsoString(state.endDate, state.endTime)
+                .takeIf { it != state.originalEvent?.dateEnd },
+
+            price = state.price.toIntOrNull()
+                ?.takeIf { it != state.originalEvent?.price },
+
+            quota = state.quota.toIntOrNull()
+                ?.takeIf { it != state.originalEvent?.quota },
+
+            categories = state.selectedCategoryIds
+                ?.takeIf { it != state.originalEvent?.categories },
+
+            images = state.images
+                ?.filter { it.startsWith("file://") }
+                ?.takeIf { it.isNotEmpty() }
         )
 
         performAction(onSuccess) { eventRepository.updateEvent(eventId, request) }
@@ -171,6 +192,7 @@ class CreateEventViewModel @Inject constructor(
 /** UI State updated to hold Category objects and selected IDs */
 data class CreateEventUiState(
     val mode: FormMode = FormMode.CREATE,
+    val originalEvent: Event? = null,
     val targetEventId: String? = null,
     val eventName: String = "",
     val description: String = "",
