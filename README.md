@@ -37,7 +37,7 @@ Designed using a feature-based modular architecture, this application focuses on
 
 1. **Clone the repository**
     ```bash
-    git clone [https://github.com/richardd-f/Ventral-Android.git](https://github.com/richardd-f/Ventral-Android.git)
+    git clone https://github.com/richardd-f/Ventral-Android.git
     ```
 
 2. **Open in Android Studio**
@@ -49,23 +49,11 @@ Designed using a feature-based modular architecture, this application focuses on
 
 4. **Environment Setup**
     * Ensure your [Ventral API](https://github.com/richardd-f/Ventral-API) is running.
-    * If testing on a physical device, update your API `BASE_URL` to your computer's local IP address.
+    * If testing on a physical device, update API `BASE_URL` to your computer's local IP address.
+    * You can update API Base url in `di/AppModule`
 
 5. **Run the App**
     * Select your target device (Emulator or Physical).
     * Click the **Run** icon (Green Play button).
 
 ---
-
-## Configuration Details
-
-### Permissions
-The application requires internet access to communicate with the API and Cloudinary. These are pre-configured in the `AndroidManifest.xml`:
-* `android.permission.INTERNET`
-* `usesCleartextTraffic="true"` (Enabled for local development testing).
-
-### Hilt Setup
-The project uses a custom application class for Hilt initialization:
-```kotlin
-@HiltAndroidApp
-class VentralApp : Application()
